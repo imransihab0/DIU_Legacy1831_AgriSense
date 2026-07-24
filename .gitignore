@@ -17,5 +17,6 @@ pdfs/*.pdf
 pdfs/.tif/
 pdfs/**/*.tif
 pdfs/**/*.rar
-# loose extracted-copy .md in pdfs root (canonical copies live in backend/data/kb/)
+# loose extracted-copy .md in pdfs (canonical copies live in backend/data/kb/)
 pdfs/*.md
+pdfs/dam/
