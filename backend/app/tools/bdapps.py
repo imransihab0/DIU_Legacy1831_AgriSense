@@ -26,7 +26,7 @@ import httpx
 from ..config import BDAPPS_APP_ID, BDAPPS_PASSWORD, BDAPPS_BASE_URL
 
 _SIM_BALANCES: dict[str, float] = {}
-_SIM_START_BALANCE = 500.0
+_SIM_START_BALANCE = 5000.0
 
 # Current TAP doc says /caas/get/balance; the 2019 API guide says
 # /caas/balance/query. Try current first, fall back on 404/E1312.
