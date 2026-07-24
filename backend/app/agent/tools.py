@@ -95,6 +95,18 @@ TOOL_SPECS = [
         },
     },
     {
+        "name": "bdapps_send_sms",
+        "description": "Send an SMS to the farmer's phone via bdapps (POST /sms/send; Bengali auto-encoded). Use for proactive weather-triggered alerts (e.g. 'Heavy rain in 4 days — delay urea application') or plan reminders, when the farmer asks for SMS alerts.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "subscriber_number": {"type": "string", "description": "e.g. 8801812345678"},
+                "message": {"type": "string", "description": "short alert text, Bengali or English, max ~300 chars"},
+            },
+            "required": ["subscriber_number", "message"],
+        },
+    },
+    {
         "name": "bdapps_checkout",
         "description": "bdapps CaaS complete checkout flow (official TAP API shapes): queryBalance -> directDebit (POST /caas/direct/debit) -> SMS receipt (POST /sms/send). Charges the farmer's mobile balance for an input purchase and returns every request/response pair plus the receipt. Only call AFTER the farmer confirms the purchase and gives their mobile number.",
         "parameters": {
@@ -137,6 +149,8 @@ def dispatch(session_id: str, name: str, args: dict):
             return {"saved_profile": db.save_profile(session_id, args)}
         if name == "bdapps_query_balance":
             return bdapps.query_balance(**args)
+        if name == "bdapps_send_sms":
+            return bdapps.send_sms(**args)
         if name == "bdapps_checkout":
             return bdapps.bdapps_checkout(**args)
         return {"error": f"Unknown tool {name}"}

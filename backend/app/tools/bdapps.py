@@ -28,6 +28,10 @@ from ..config import BDAPPS_APP_ID, BDAPPS_PASSWORD, BDAPPS_BASE_URL
 _SIM_BALANCES: dict[str, float] = {}
 _SIM_START_BALANCE = 500.0
 
+# Current TAP doc says /caas/get/balance; the 2019 API guide says
+# /caas/balance/query. Try current first, fall back on 404/E1312.
+_BALANCE_PATHS = ["/caas/get/balance", "/caas/balance/query"]
+
 
 def _mode() -> str:
     return "REAL bdapps sandbox" if (BDAPPS_APP_ID and BDAPPS_PASSWORD) else \
@@ -39,8 +43,15 @@ def _live() -> bool:
 
 
 def _tel(subscriber_number: str) -> str:
+    # E1325 in the 2019 guide expects "tel: 8801812345678"; current TAP
+    # samples show "tel:..." without the space. Using no-space form; if the
+    # real sandbox returns E1325, add a space after the colon here.
     n = subscriber_number.strip().replace("+", "").replace(" ", "")
     return n if n.startswith("tel:") else f"tel:{n}"
+
+
+def _has_bengali(text: str) -> bool:
+    return any("ঀ" <= ch <= "৿" for ch in text)
 
 
 def _post(path: str, payload: dict) -> dict:
@@ -71,7 +82,12 @@ def query_balance(subscriber_number: str) -> dict:
         "currency": "BDT",
     }
     if _live():
-        response_payload = _post("/caas/get/balance", request_payload)
+        response_payload = {}
+        for path in _BALANCE_PATHS:
+            response_payload = _post(path, request_payload)
+            code = str(response_payload.get("statusCode", ""))
+            if not (code.startswith("HTTP_4") or code == "E1312"):
+                break
     else:
         bal = _SIM_BALANCES.get(subscriber_number, _SIM_START_BALANCE)
         response_payload = {
@@ -130,7 +146,32 @@ def direct_debit(subscriber_number: str, amount_bdt: float) -> dict:
     }
 
 
-# ---------------- sms/send (receipt) ----------------
+# ---------------- caas/list/pi ----------------
+
+def list_payment_instruments(subscriber_number: str) -> dict:
+    request_payload = {
+        "applicationId": BDAPPS_APP_ID or "APP_999999",
+        "password": BDAPPS_PASSWORD or "***sandbox***",
+        "subscriberId": _tel(subscriber_number),
+        "type": "all",
+    }
+    if _live():
+        response_payload = _post("/caas/list/pi", request_payload)
+    else:
+        response_payload = {
+            "statusCode": "S1000",
+            "statusDetail": "Success.",
+            "paymentInstrumentList": [{"name": "Mobile Account", "type": "sync"}],
+        }
+    return {
+        "mode": _mode(),
+        "endpoint": "POST /caas/list/pi",
+        "request": _redact(request_payload),
+        "response": response_payload,
+    }
+
+
+# ---------------- sms/send (receipts + proactive alerts) ----------------
 
 def send_sms(subscriber_number: str, message: str) -> dict:
     request_payload = {
@@ -140,6 +181,8 @@ def send_sms(subscriber_number: str, message: str) -> dict:
         "message": message,
         "destinationAddresses": [_tel(subscriber_number)],
     }
+    if _has_bengali(message):
+        request_payload["encoding"] = "16"  # Bengali encoding per API guide
     if _live():
         response_payload = _post("/sms/send", request_payload)
     else:
@@ -162,7 +205,7 @@ def send_sms(subscriber_number: str, message: str) -> dict:
 def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str) -> dict:
     """Complete CaaS checkout: balance query -> direct debit -> SMS receipt."""
     amount = round(float(amount_bdt), 2)
-    steps = []
+    steps = [list_payment_instruments(subscriber_number)]
 
     balance_step = query_balance(subscriber_number)
     steps.append(balance_step)
@@ -205,7 +248,7 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
 
     return {
         "mode": _mode(),
-        "flow": "caas/queryBalance -> caas/directDebit -> sms/send (receipt)",
+        "flow": "caas/list/pi -> caas/queryBalance -> caas/directDebit -> sms/send (receipt)",
         "steps": steps,
         "outcome": {"success": success, "receipt": receipt}
         if success
