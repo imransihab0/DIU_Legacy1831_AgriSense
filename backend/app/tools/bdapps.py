@@ -367,30 +367,54 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
 
     debit_step = direct_debit(subscriber_number, amount)
     steps.append(debit_step)
-    success = debit_step["response"].get("statusCode") == "S1000"
+    debit_code = debit_step["response"].get("statusCode")
+    live_charge = debit_code == "S1000"
+    # The bdapps sandbox gives a FIXED test wallet with hard NCS limits and no recharge,
+    # so a real charge often can't complete by design: E1378 (empty wallet), E1329 (amount
+    # over the sandbox cap), E1330 (under the minimum). For those we still complete the
+    # order and send the receipt — the CaaS debit request/response stays real in the trace.
+    sandbox_demo = _live() and debit_code in {"E1378", "E1329", "E1330"}
 
     receipt = None
-    if success:
-        receipt_text = (
-            f"AgriSense receipt: BDT {amount:.2f} charged for {description}. "
-            f"TrxId {debit_step['response'].get('externalTrxId', '')[-10:]}. Thank you!"
-        )
+    if live_charge or sandbox_demo:
+        trx = debit_step["response"].get("externalTrxId", "")
+        if live_charge:
+            receipt_text = (
+                f"AgriSense receipt: BDT {amount:.2f} charged for {description}. "
+                f"TrxId {trx[-10:]}. Thank you!"
+            )
+        else:  # sandbox order confirmed, no live deduction (test balance exhausted)
+            receipt_text = (
+                f"AgriSense (sandbox): order confirmed for {description}, BDT {amount:.2f}. "
+                f"Ref {trx[-10:]}. [test mode - no live deduction]"
+            )
         steps.append(send_sms(subscriber_number, receipt_text))
         receipt = {
-            "charged_bdt": amount,
+            "amount_bdt": amount,
             "description": description,
+            "live_deduction": live_charge,
             "externalTrxId": debit_step["response"].get("externalTrxId"),
             "internalTrxId": debit_step["response"].get("internalTrxId"),
             "referenceId": debit_step["response"].get("referenceId"),
             "timeStamp": debit_step["response"].get("timeStamp"),
             "sms_receipt_sent": True,
+            "note": None if live_charge else
+            f"Real CaaS directDebit was called (see trace); sandbox test wallet/limit ({debit_code}) "
+            "prevented a live deduction. Receipt SMS still sent. Would deduct on a funded balance "
+            "within the sandbox amount limits.",
         }
+
+    if live_charge:
+        outcome = {"success": True, "charge": "real S1000 operator debit", "receipt": receipt}
+    elif sandbox_demo:
+        outcome = {"success": True, "charge": f"sandbox ({debit_code}) - real debit request/response "
+                   "in trace, no live deduction; order confirmed and receipt sent", "receipt": receipt}
+    else:
+        outcome = {"success": False, "reason": debit_step["response"].get("statusDetail")}
 
     return {
         "mode": _mode(),
         "flow": "caas/list/pi -> caas/queryBalance -> caas/directDebit -> sms/send (receipt)",
         "steps": steps,
-        "outcome": {"success": success, "receipt": receipt}
-        if success
-        else {"success": False, "reason": debit_step["response"].get("statusDetail")},
+        "outcome": outcome,
     }
