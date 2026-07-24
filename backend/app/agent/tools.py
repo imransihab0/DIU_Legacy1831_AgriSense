@@ -1,6 +1,6 @@
 """Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
 import functools
-from ..tools import weather, market, finance, bdapps, season_plan, livestock
+from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts
 from ..rag import store
 from .. import db
 
@@ -92,6 +92,22 @@ TOOL_SPECS = [
         },
     },
     {
+        "name": "assess_pest_risk",
+        "description": "Deterministic pest & disease RISK for a crop, scored from the LIVE weather (temperature + moisture) and the crop's current growth stage. Returns each likely threat with a risk level (high/medium/low), symptoms, prevention, treatment and an indicative per-acre cost. Call this for pest/disease questions and when building or reviewing a plan — pass temp_c and recent_rain_mm from get_weather_forecast and growth_stage from the season plan. Pair with search_knowledge_base for detail.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "crop": {"type": "string", "description": "one of: boro_rice, aman_rice, wheat, maize, potato, mustard, lentil, onion, jute, tomato"},
+                "growth_stage": {"type": "string", "description": "e.g. 'seedling', 'vegetative', 'tillering', 'flowering', 'tuber bulking', 'fruiting', 'maturity'"},
+                "temp_c": {"type": "number", "description": "current/avg temperature °C from the live forecast"},
+                "humidity_pct": {"type": "number", "description": "relative humidity % if known"},
+                "recent_rain_mm": {"type": "number", "description": "recent/forecast rain mm over ~a week from the live forecast"},
+                "area_acres": {"type": "number", "description": "to total the treatment cost"},
+            },
+            "required": ["crop"],
+        },
+    },
+    {
         "name": "compute_livestock_financials",
         "description": "Deterministic livestock financial engine (animals, not crops): itemized costs, output (live weight / milk / eggs), revenue, net profit, ROI, break-even for a batch over one production cycle. Use for ANY animal profit/cost question (broiler, layer, goat_fattening, beef_fattening, dairy_cow). ALL animal money math must come from this tool. Supports scenario overrides: yield_factor / cost_factor / price_factor and a mortality_pct override.",
         "parameters": {
@@ -121,6 +137,11 @@ TOOL_SPECS = [
             },
             "required": ["animal"],
         },
+    },
+    {
+        "name": "check_weather_alerts",
+        "description": "Proactively check the farm's saved season plan against the LIVE forecast and return weather-triggered alerts (e.g. heavy rain near a nitrogen-application or sowing date -> delay it; rain near an irrigation date -> skip it). Uses the persisted plan + farm location automatically. Call this when the farmer asks 'any warnings?', after building a plan, or to give proactive advice. Offer to send an urgent alert as SMS via bdapps_send_sms.",
+        "parameters": {"type": "object", "properties": {}, "required": []},
     },
     {
         "name": "save_farm_profile",
@@ -205,7 +226,14 @@ def dispatch(session_id: str, name: str, args: dict):
         if name == "compute_financials":
             return finance.compute_financials(**args)
         if name == "generate_season_plan":
-            return season_plan.generate_season_plan(**args)
+            result = season_plan.generate_season_plan(**args)
+            if isinstance(result, dict) and "error" not in result:
+                db.save_plan(session_id, result)  # persist for proactive weather alerts
+            return result
+        if name == "assess_pest_risk":
+            return pest.assess_pest_risk(**args)
+        if name == "check_weather_alerts":
+            return alerts.check_weather_alerts(session_id)
         if name == "compute_livestock_financials":
             return livestock.compute_livestock_financials(**args)
         if name == "generate_livestock_plan":

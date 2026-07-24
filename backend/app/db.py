@@ -28,6 +28,28 @@ def init_db():
                 ts REAL NOT NULL
             )"""
         )
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS plans (
+                session_id TEXT PRIMARY KEY,
+                plan TEXT NOT NULL,
+                updated_at REAL NOT NULL
+            )"""
+        )
+
+
+def save_plan(session_id: str, plan: dict):
+    with _conn() as c:
+        c.execute(
+            "INSERT INTO plans(session_id, plan, updated_at) VALUES(?,?,?) "
+            "ON CONFLICT(session_id) DO UPDATE SET plan=excluded.plan, updated_at=excluded.updated_at",
+            (session_id, json.dumps(plan, ensure_ascii=False), time.time()),
+        )
+
+
+def get_plan(session_id: str) -> dict | None:
+    with _conn() as c:
+        row = c.execute("SELECT plan FROM plans WHERE session_id=?", (session_id,)).fetchone()
+    return json.loads(row["plan"]) if row else None
 
 
 def get_profile(session_id: str) -> dict:
@@ -71,3 +93,4 @@ def reset_session(session_id: str):
     with _conn() as c:
         c.execute("DELETE FROM messages WHERE session_id=?", (session_id,))
         c.execute("DELETE FROM farms WHERE session_id=?", (session_id,))
+        c.execute("DELETE FROM plans WHERE session_id=?", (session_id,))

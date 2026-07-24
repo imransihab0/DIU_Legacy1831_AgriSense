@@ -44,6 +44,13 @@ def reset(session_id: str):
     return {"ok": True}
 
 
+@app.get("/api/alerts/{session_id}")
+def alerts_endpoint(session_id: str):
+    """Proactive weather alerts for the farm's saved plan — polled by the UI (no chat turn)."""
+    from .tools import alerts
+    return alerts.get_session_alerts(session_id)
+
+
 @app.get("/api/health")
 def health():
     from .rag.store import get_collection

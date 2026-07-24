@@ -1,0 +1,46 @@
+{
+  "_note": "Seeded pest/disease risk rules, compiled from DAE plant-protection bulletins and BRRI/BARI IPM guides (same public sources as kb/pest_management.md). Each threat lists the weather + growth-stage conditions that favour it, plus prevention, treatment and an indicative per-acre treatment cost (BDT). The deterministic engine scores risk from live weather + stage; the LLM never invents this.",
+  "crops": {
+    "boro_rice": [
+      {"name": "Brown planthopper (BPH)", "type": "pest", "stages": ["tillering", "vegetative", "reproductive", "flowering"], "temp_c": [26, 34], "moisture": "wet", "symptoms": "Hopper-burn patches in dense, over-fertilized fields.", "prevention": "Alternate wetting/drying, avoid excess urea, keep field open.", "treatment": "Drain 3-4 days; if >4-5 hoppers/hill spray pymetrozine.", "product": null, "treatment_cost_bdt_per_acre": 1000},
+      {"name": "Stem borer", "type": "pest", "stages": ["vegetative", "tillering", "reproductive"], "temp_c": [24, 32], "moisture": "any", "symptoms": "Deadhearts (vegetative) or whiteheads (reproductive).", "prevention": "Light traps, Trichogramma cards, clip seedling tips.", "treatment": "If >5% deadhearts apply cartap or chlorantraniliprole granules.", "product": "cartap", "treatment_cost_bdt_per_acre": 900},
+      {"name": "Rice blast", "type": "disease", "stages": ["vegetative", "panicle", "reproductive", "flowering"], "temp_c": [18, 26], "moisture": "wet", "symptoms": "Diamond-shaped lesions; favoured by cool nights, high humidity, excess N.", "prevention": "Resistant varieties (BRRI dhan88/89), balanced N.", "treatment": "Preventive tricyclazole at panicle initiation in blast-prone areas.", "product": null, "treatment_cost_bdt_per_acre": 600}
+    ],
+    "aman_rice": [
+      {"name": "Brown planthopper (BPH)", "type": "pest", "stages": ["tillering", "vegetative", "reproductive"], "temp_c": [26, 34], "moisture": "wet", "symptoms": "Hopper-burn in dense canopy.", "prevention": "AWD, avoid excess urea.", "treatment": "Drain field; spray pymetrozine above threshold.", "product": null, "treatment_cost_bdt_per_acre": 1000},
+      {"name": "Stem borer", "type": "pest", "stages": ["vegetative", "tillering", "reproductive"], "temp_c": [24, 32], "moisture": "any", "symptoms": "Deadhearts / whiteheads.", "prevention": "Light traps, Trichogramma.", "treatment": "Cartap granules above threshold.", "product": "cartap", "treatment_cost_bdt_per_acre": 900},
+      {"name": "Bacterial leaf blight", "type": "disease", "stages": ["vegetative", "reproductive"], "temp_c": [25, 34], "moisture": "wet", "symptoms": "Yellowing leaf margins after storms/flooding.", "prevention": "Avoid excess N, drain after flooding.", "treatment": "No chemical cure — drain, stop urea, apply MoP.", "product": null, "treatment_cost_bdt_per_acre": 300}
+    ],
+    "wheat": [
+      {"name": "Wheat blast", "type": "disease", "stages": ["heading", "flowering", "reproductive"], "temp_c": [24, 30], "moisture": "wet", "symptoms": "Bleached spikes in warm humid spells.", "prevention": "Avoid late sowing (after Dec 20), seed treatment.", "treatment": "Tebuconazole at heading in humid warm spells.", "product": null, "treatment_cost_bdt_per_acre": 1200},
+      {"name": "Aphid", "type": "pest", "stages": ["vegetative", "flowering", "grain"], "temp_c": [15, 25], "moisture": "dry", "symptoms": "Colonies on tillers before grain filling.", "prevention": "Encourage ladybird predators.", "treatment": "Spray only if >10 aphids/tiller before grain filling.", "product": "imidacloprid", "treatment_cost_bdt_per_acre": 350}
+    ],
+    "maize": [
+      {"name": "Fall armyworm", "type": "pest", "stages": ["seedling", "vegetative", "whorl"], "temp_c": [24, 32], "moisture": "any", "symptoms": "Ragged shot-hole leaf feeding, frass in whorl.", "prevention": "Early (November) sowing escapes peak; scout twice weekly.", "treatment": "If >20% whorl-stage plants infested, spray spinetoram/emamectin into whorls.", "product": null, "treatment_cost_bdt_per_acre": 1300}
+    ],
+    "potato": [
+      {"name": "Late blight", "type": "disease", "stages": ["vegetative", "tuber", "bulking"], "temp_c": [10, 22], "moisture": "wet", "symptoms": "Water-soaked lesions with white mould underside; destroys a field in 5-7 cool foggy days.", "prevention": "Preventive mancozeb every 7-10 days from 40 DAP.", "treatment": "Switch to curative (dimethomorph+mancozeb) at first lesion.", "product": "mancozeb", "treatment_cost_bdt_per_acre": 6000},
+      {"name": "Cutworm", "type": "pest", "stages": ["seedling", "planting"], "temp_c": [15, 28], "moisture": "any", "symptoms": "Seedlings cut at soil line.", "prevention": "Hand-collect at dusk, clean field borders.", "treatment": "Chlorpyrifos soil drench if severe.", "product": null, "treatment_cost_bdt_per_acre": 500}
+    ],
+    "mustard": [
+      {"name": "Aphid", "type": "pest", "stages": ["flowering", "reproductive"], "temp_c": [15, 25], "moisture": "dry", "symptoms": "Most damaging at flowering; sooty mould.", "prevention": "Protect pollinators, spray late afternoon.", "treatment": "Malathion only if >50 aphids/plant.", "product": null, "treatment_cost_bdt_per_acre": 400},
+      {"name": "Alternaria blight", "type": "disease", "stages": ["vegetative", "flowering"], "temp_c": [18, 27], "moisture": "wet", "symptoms": "Dark concentric leaf spots in humid weather.", "prevention": "Clean seed, crop rotation.", "treatment": "Iprodione or mancozeb at first sign.", "product": "mancozeb", "treatment_cost_bdt_per_acre": 700}
+    ],
+    "lentil": [
+      {"name": "Stemphylium blight", "type": "disease", "stages": ["vegetative", "flowering"], "temp_c": [18, 26], "moisture": "wet", "symptoms": "Main yield killer in humid Novembers; rapid leaf drop.", "prevention": "Avoid dense canopy, clean seed.", "treatment": "Preventive mancozeb at 40 and 55 DAS.", "product": "mancozeb", "treatment_cost_bdt_per_acre": 800}
+    ],
+    "onion": [
+      {"name": "Purple blotch", "type": "disease", "stages": ["bulking", "vegetative"], "temp_c": [20, 30], "moisture": "wet", "symptoms": "Purple-centred lesions in cloudy humid weather.", "prevention": "Wider spacing, avoid leaf wetness.", "treatment": "Mancozeb + sticker every 10 days.", "product": "mancozeb", "treatment_cost_bdt_per_acre": 700},
+      {"name": "Thrips", "type": "pest", "stages": ["bulking", "vegetative"], "temp_c": [25, 35], "moisture": "dry", "symptoms": "Silvery streaks on leaves in dry weeks.", "prevention": "Blue sticky traps, irrigation to break dry spell.", "treatment": "Imidacloprid if severe.", "product": "imidacloprid", "treatment_cost_bdt_per_acre": 400}
+    ],
+    "jute": [
+      {"name": "Jute hairy caterpillar", "type": "pest", "stages": ["seedling", "vegetative"], "temp_c": [26, 34], "moisture": "any", "symptoms": "Gregarious leaf feeding, defoliation of young plants.", "prevention": "Destroy egg masses, clean field borders.", "treatment": "Handpick early colonies; spot spray if severe.", "product": null, "treatment_cost_bdt_per_acre": 600},
+      {"name": "Stem rot", "type": "disease", "stages": ["vegetative"], "temp_c": [24, 32], "moisture": "wet", "symptoms": "Water-soaked stem lesions in waterlogged fields.", "prevention": "Good drainage, avoid dense stand.", "treatment": "Improve drainage; carbendazim at early sign.", "product": null, "treatment_cost_bdt_per_acre": 500}
+    ],
+    "tomato": [
+      {"name": "Late blight", "type": "disease", "stages": ["vegetative", "fruiting", "flowering"], "temp_c": [12, 22], "moisture": "wet", "symptoms": "Dark greasy leaf/fruit lesions in cool humid weather.", "prevention": "Staking for airflow, avoid overhead irrigation.", "treatment": "Mancozeb preventive; dimethomorph curative at first lesion.", "product": "mancozeb", "treatment_cost_bdt_per_acre": 900},
+      {"name": "Fruit borer", "type": "pest", "stages": ["flowering", "fruiting"], "temp_c": [20, 30], "moisture": "any", "symptoms": "Bore holes in fruit, frass.", "prevention": "Pheromone traps, hand-pick bored fruit.", "treatment": "Emamectin/spinosad at fruiting above threshold.", "product": "pheromone_trap", "treatment_cost_bdt_per_acre": 700},
+      {"name": "Whitefly / leaf curl virus", "type": "pest", "stages": ["seedling", "vegetative"], "temp_c": [24, 34], "moisture": "dry", "symptoms": "Upward leaf curl, stunting; whitefly vectored.", "prevention": "Virus-tolerant varieties, yellow sticky traps, rogue infected plants.", "treatment": "Imidacloprid to suppress whitefly early.", "product": "imidacloprid", "treatment_cost_bdt_per_acre": 500}
+    ]
+  }
+}

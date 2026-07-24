@@ -38,6 +38,30 @@ fetch("/api/model").then(r => r.json()).then(m => {
   });
 });
 
+// --- Proactive weather alerts: poll without a chat turn and show a banner ---
+const SEV_ICON = { high: "🔴", medium: "🟠", info: "🔵" };
+async function pollAlerts() {
+  try {
+    const r = await fetch(`/api/alerts/${sessionId}`);
+    const data = await r.json();
+    const banner = $("alertBanner");
+    if (data.status !== "ok" || !data.alerts || !data.alerts.length) {
+      banner.classList.add("hidden");
+      banner.innerHTML = "";
+      return;
+    }
+    const rows = data.alerts.map(a =>
+      `<div class="alert-row ${a.severity}">${SEV_ICON[a.severity] || "⚠️"} `
+      + `<b>${escapeHtml(a.message)}</b> — ${escapeHtml(a.suggestion)}</div>`
+    ).join("");
+    banner.innerHTML = `<div class="alert-title">⛅ Weather alerts for your ${escapeHtml(data.crop || "plan")} `
+      + `<span class="alert-meta">live · ${data.alert_count} active</span></div>${rows}`;
+    banner.classList.remove("hidden");
+  } catch (_) { /* backend offline — leave banner as is */ }
+}
+pollAlerts();
+setInterval(pollAlerts, 5 * 60 * 1000); // re-check every 5 min, no user action needed
+
 function addMessage(role, html) {
   const div = document.createElement("div");
   div.className = "msg " + role;
@@ -95,6 +119,7 @@ async function send(message) {
     thinking.classList.remove("pending");
     $("sendBtn").disabled = false;
     $("input").focus();
+    pollAlerts(); // a turn may have created/updated the plan — refresh the banner now
   }
 }
 
