@@ -259,7 +259,7 @@ $("orderConfirm").onclick = () => {
   const items = [...$("orderRows").querySelectorAll(".order-row")].map((row) => {
     const it = INPUT_CATALOG[+row.querySelector("select").value];
     const q = Math.max(1, parseInt(row.querySelector(".order-qty").value) || 1);
-    return `${q}x ${it.name}`;  // ASCII so the SMS receipt is clean
+    return `${q} x ${it.name} (${it.unit})`;  // include the unit so "1 bag/50kg" is unambiguous (ASCII for SMS)
   });
   if (!total) return;
   if (phone.replace(/\D/g, "").length < 11) { $("orderPhone").classList.add("err"); $("orderPhone").focus(); return; }
