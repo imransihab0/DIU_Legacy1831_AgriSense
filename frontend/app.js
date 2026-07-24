@@ -129,14 +129,15 @@ $("resetBtn").addEventListener("click", async () => {
   location.reload();
 });
 
-// ---- Agent message rendering: extract [[BUTTON:..]] / [[SHORTCUT:..]] tokens ----
-const TOKEN_RE = /\[\[(BUTTON|SHORTCUT):([^\]|]+)\|([^\]]+)\]\]/g;
+// ---- Agent message rendering: extract [[BUTTON]] / [[SHORTCUT]] / [[REMOVE_SHORTCUT]] tokens ----
+const TOKEN_RE = /\[\[(BUTTON|SHORTCUT|REMOVE_SHORTCUT):([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
 function renderAgentMessage(el, content) {
   const buttons = [];
   const text = content.replace(TOKEN_RE, (_, kind, label, msg) => {
-    if (kind === "SHORTCUT") addShortcut(label.trim(), msg.trim());
-    else buttons.push({ label: label.trim(), msg: msg.trim() });
+    if (kind === "SHORTCUT" && msg) addShortcut(label.trim(), msg.trim());
+    else if (kind === "REMOVE_SHORTCUT") removeShortcutFuzzy(label.trim());
+    else if (kind === "BUTTON" && msg) buttons.push({ label: label.trim(), msg: msg.trim() });
     return "";
   }).trim();
 
@@ -201,6 +202,25 @@ function addShortcut(label, text) {
 function removeShortcut(label) {
   saveShortcuts(loadShortcuts().filter((s) => s.label !== label));
   renderChips();
+}
+
+// fuzzy removal by label OR message text, for conversational "remove X"
+function normLabel(s) {
+  return s.replace(/⭐/g, "").replace(/[^\p{L}\p{N}]/gu, "").toLowerCase().trim();
+}
+function removeShortcutFuzzy(target) {
+  const t = normLabel(target);
+  if (!t) return;
+  const list = loadShortcuts();
+  const kept = list.filter((s) => {
+    const nl = normLabel(s.label), nt = normLabel(s.text);
+    return !(nl === t || nl.includes(t) || t.includes(nl) || nt.includes(t));
+  });
+  if (kept.length !== list.length) {
+    saveShortcuts(kept);
+    renderChips();
+    addTrace("status", `🗑 shortcut removed: ${target}`);
+  }
 }
 
 function renderChips() {
