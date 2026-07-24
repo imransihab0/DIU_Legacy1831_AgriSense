@@ -1,6 +1,6 @@
 """Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
 import functools
-from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers
+from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers, soilmap
 from ..rag import store
 from .. import db
 
@@ -12,6 +12,18 @@ TOOL_SPECS = [
             "type": "object",
             "properties": {"location_name": {"type": "string", "description": "Place name, e.g. 'Bogura, Bangladesh'"}},
             "required": ["location_name"],
+        },
+    },
+    {
+        "name": "lookup_soil_texture",
+        "description": "Look up the farm's SOIL TEXTURE from its coordinates using the real SRDI soil map (returns clay/sand/silt %, USDA texture, and a soil_type of clay/clay loam/loam/sandy loam). Use this to AUTO-DETECT soil type when the farmer gives a location but doesn't know their soil — call geocode_location first to get lat/lon. The farmer's own stated soil still takes priority if they know it.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "latitude": {"type": "number"},
+                "longitude": {"type": "number"},
+            },
+            "required": ["latitude", "longitude"],
         },
     },
     {
@@ -251,6 +263,8 @@ def dispatch(session_id: str, name: str, args: dict):
     try:
         if name == "geocode_location":
             return weather.geocode_location(**args)
+        if name == "lookup_soil_texture":
+            return soilmap.lookup_soil_texture(**args)
         if name == "get_weather_forecast":
             return weather.get_weather_forecast(**args)
         if name == "search_knowledge_base":
