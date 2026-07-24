@@ -45,6 +45,37 @@ main { flex: 1; display: flex; min-height: 0; }
 .msg.assistant code { background: #eef2ea; padding: 1px 4px; border-radius: 4px; font-size: .85em; }
 .msg .err { color: #b02a2a; }
 
+#quickActions {
+  display: flex; gap: 7px; padding: 8px 16px 0; flex-wrap: wrap;
+  background: #e9eee4;
+}
+.chip {
+  border: 1px solid #b6c7a9; background: #fff; color: #1d4d2b;
+  border-radius: 999px; padding: 6px 12px; font-size: .82rem; cursor: pointer;
+  white-space: nowrap; transition: background .12s;
+}
+.chip:hover { background: #dcece0; }
+.chip.buy { background: #2c7a3f; color: #fff; border-color: #2c7a3f; }
+.chip.buy:hover { background: #24632f; }
+.chip.confirm { background: #f0a500; color: #3a2c00; border-color: #f0a500; font-weight: 600; }
+
+#dragbar {
+  width: 6px; cursor: col-resize; background: #d6ddd2;
+  flex: 0 0 6px; transition: background .12s;
+}
+#dragbar:hover, #dragbar.dragging { background: #2c7a3f; }
+
+.trace-header { display: flex; justify-content: space-between; align-items: flex-start; }
+#traceToggle {
+  background: transparent; color: #cfe8d5; border: 1px solid #2c5a40;
+  border-radius: 5px; cursor: pointer; padding: 2px 8px; font-size: .9rem;
+}
+#tracePane.collapsed { flex: 0 0 44px !important; min-width: 44px; }
+#tracePane.collapsed .trace-header h2 span,
+#tracePane.collapsed .trace-header .sub,
+#tracePane.collapsed #trace { display: none; }
+#tracePane.collapsed .trace-header { flex-direction: column; align-items: center; }
+
 #composer { display: flex; gap: 8px; padding: 12px 16px; background: #e9eee4; }
 #input {
   flex: 1; padding: 11px 14px; border: 1px solid #c6d0bf;

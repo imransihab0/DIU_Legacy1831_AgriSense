@@ -129,6 +129,50 @@ $("resetBtn").addEventListener("click", async () => {
   location.reload();
 });
 
+// ---- Quick-action chips ----
+const QUICK_ACTIONS = [
+  { label: "🌾 প্ল্যান দিন", text: "আমার জমির জন্য একটি সম্পূর্ণ মৌসুমি প্ল্যান দিন।" },
+  { label: "🌦️ আবহাওয়া", text: "এই সপ্তাহের আবহাওয়া আমার প্ল্যানে কোনো ঝুঁকি তৈরি করছে কি?" },
+  { label: "💰 দামের তালিকা", text: "সার ও বীজের দামের তালিকা দিন।" },
+  { label: "🐛 পোকা-রোগ", text: "আমার ফসলে কোন পোকা বা রোগের ঝুঁকি আছে?" },
+  { label: "🛒 এখুনি কিনুন", text: "আমার প্ল্যানের দরকারি সার এখন কিনতে চাই। আমার নম্বর 8801875191553।", cls: "buy" },
+  { label: "✅ কনফার্ম করুন", text: "কনফার্ম, পেমেন্ট করে দিন।", cls: "confirm" },
+];
+const qa = $("quickActions");
+for (const a of QUICK_ACTIONS) {
+  const b = document.createElement("button");
+  b.className = "chip" + (a.cls ? " " + a.cls : "");
+  b.textContent = a.label;
+  b.addEventListener("click", () => { if (!$("sendBtn").disabled) send(a.text); });
+  qa.appendChild(b);
+}
+
+// ---- Draggable divider between chat and trace ----
+(function () {
+  const bar = $("dragbar");
+  const trace = $("tracePane");
+  let dragging = false;
+  bar.addEventListener("mousedown", (e) => {
+    dragging = true; bar.classList.add("dragging");
+    document.body.style.userSelect = "none"; e.preventDefault();
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const w = Math.min(Math.max(window.innerWidth - e.clientX, 60), window.innerWidth - 320);
+    trace.classList.remove("collapsed");
+    trace.style.flex = `0 0 ${w}px`;
+  });
+  window.addEventListener("mouseup", () => {
+    dragging = false; bar.classList.remove("dragging"); document.body.style.userSelect = "";
+  });
+  bar.addEventListener("dblclick", () => { trace.style.flex = ""; trace.classList.remove("collapsed"); });
+  $("traceToggle").addEventListener("click", () => {
+    trace.classList.toggle("collapsed");
+    trace.style.flex = "";
+    $("traceToggle").textContent = trace.classList.contains("collapsed") ? "⟨" : "⟩";
+  });
+})();
+
 addMessage(
   "assistant",
   marked.parse(
