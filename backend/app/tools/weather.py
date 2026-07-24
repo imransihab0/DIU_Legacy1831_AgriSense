@@ -77,6 +77,8 @@ def geocode_location(location_name: str) -> dict:
     # Prefer a Bangladesh match when the farmer's place name is ambiguous globally
     top = next((x for x in results if x.get("country_code") == "BD"), results[0])
     result = {
+        "query": location_name,
+        "name": top.get("name"),
         "matched_name": top.get("name"),
         "admin1": top.get("admin1"),
         "country": top.get("country"),
