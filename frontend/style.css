@@ -135,8 +135,10 @@ main { flex: 1; display: flex; min-height: 0; }
 #tracePane.collapsed { flex: 0 0 44px !important; min-width: 44px; }
 #tracePane.collapsed .trace-header h2 span,
 #tracePane.collapsed .trace-header .sub,
+#tracePane.collapsed #traceCopy,
 #tracePane.collapsed #trace { display: none; }
-#tracePane.collapsed .trace-header { flex-direction: column; align-items: center; }
+#tracePane.collapsed .trace-header { flex-direction: column; align-items: center; gap: 8px; }
+#tracePane.collapsed .trace-header h2 { font-size: 1.2rem; margin: 0; }
 
 #composer { display: flex; gap: 8px; padding: 12px 16px; background: #e9eee4; }
 #input {
