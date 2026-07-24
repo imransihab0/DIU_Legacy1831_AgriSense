@@ -1,2 +1,83 @@
-# DIU_Legeacy1831_IUT_Fest_Agentic_AI_Final_Round
-yeeeeee
+# AgriSense AI — Team DIU_Legacy1831
+
+**Bdapps presents Agentic AI Hackathon (IUT 12th ICT Fest) — Final Round submission.**
+
+An autonomous agricultural advisor that takes a farmer from an empty field to a **costed, weather-aware season plan** — and keeps advising through harvest. It converses to learn the farm, pulls **live weather**, retrieves grounded agronomy from a **RAG knowledge base**, runs all money math through a **deterministic financial engine**, remembers the farm **across sessions**, and exposes a **live agent trace** so every number can be verified against a real tool call.
+
+## Quick start
+
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp ../.env.example ../.env        # then put your API key(s) in ../.env
+python -m app.rag.ingest          # build the knowledge base (ChromaDB)
+uvicorn app.main:app --reload --port 8000
+```
+
+Open **http://localhost:8000** — chat on the left, live agent trace on the right.
+
+LLM provider is toggled in `.env`: `LLM_PROVIDER=openai` (primary, `gpt-5.1`) or `anthropic` (fallback, `claude-sonnet-4-6`). Both use the identical tool set.
+
+## Architecture
+
+```
+Farmer ⇄ Web UI (chat + live trace panel)
+              │ ndjson stream
+        FastAPI backend
+              │
+        Agent loop (OpenAI / Anthropic tool-calling, ≤10 steps/turn)
+   ┌──────────┼─────────────┬──────────────┬─────────────┬────────────┐
+ geocode  get_weather   search_kb      compute_     get_market_   bdapps_
+ (live)   (live,        (RAG over      financials   prices        checkout
+ Open-    Open-Meteo)   ChromaDB)      (determin-   (seeded,      (sandbox
+ Meteo)                                istic Python) labeled mock) simulation)
+                              │
+                    save_farm_profile → SQLite (persistent memory across sessions)
+```
+
+## Tier coverage (per the problem statement)
+
+| # | Tier 0 capability | Where |
+|---|---|---|
+| 1 | Conversational intake + targeted follow-ups | System prompt intake protocol; `save_farm_profile` persists each field |
+| 2 | Live weather grounding | `geocode_location` + `get_weather_forecast` → **Open-Meteo (real API, no mock)** |
+| 3 | Crop recommendation (≥3, ranked) | Agent workflow step 4: RAG suitability + per-crop `compute_financials` |
+| 4 | Season plan (dated calendar) | Agent workflow step 5, grounded in KB crop calendars + live forecast |
+| 5 | Financial projection | `compute_financials` — deterministic Python; itemized costs, yield, revenue, net, ROI, break-even; changes correctly with inputs |
+| 6 | Explained reasoning | Grounding rules force every recommendation to state its inputs |
+| 7 | Knowledge base with RAG | ChromaDB over `backend/data/kb/` (BARC FRG, DAE/BRRI-derived docs) |
+| 8 | Visible agent trace | Right-hand panel streams every tool call: name, params, raw result, latency |
+
+**Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (KB-grounded splits with dates).
+**Tier 2:** bdapps CaaS payment — sandbox **simulation** of the TAP charging API flow (request → response → balance deduction → receipt), shown in the trace. Bengali interaction supported natively.
+
+## Real vs mock (required disclosure)
+
+| Component | Status |
+|---|---|
+| Weather + geocoding (Open-Meteo) | **REAL** — live API calls, visible in trace |
+| LLM (OpenAI gpt-5.1 / Claude Sonnet 4.6) | **REAL** |
+| Knowledge base content | **REAL public sources** — compiled from BARC Fertilizer Recommendation Guide (FRG-2018), DAE/BRRI crop calendars & IPM bulletins, SRDI soil guides (see `backend/data/kb/`, each file cites its source) |
+| RAG retrieval (ChromaDB) | **REAL** — actual vector search, chunks + sources visible in trace |
+| Financial math | **REAL computation** — deterministic Python; baseline per-acre costs/yields are **seeded reference data** compiled from public extension sources (`backend/data/crops.json`) |
+| Market prices | **MOCK/SEEDED** — labeled catalog (`backend/data/market_prices.json`), indicative of DAM reports |
+| bdapps CaaS payment | **SANDBOX SIMULATION** — mirrors the official API request/response shape; no real charge |
+| Farm memory (SQLite) | **REAL** — persists across sessions |
+
+## Tools & APIs used
+
+- **OpenAI API** (`gpt-5.1`) — primary agent LLM · **Anthropic API** (`claude-sonnet-4-6`) — fallback
+- **Open-Meteo** forecast + geocoding — free, live, no key
+- **ChromaDB** (embedded) — vector store for RAG
+- **FastAPI + Uvicorn** — backend; **SQLite** — memory; vanilla JS — frontend
+- Built during the event with **Claude Code** and **Codex** as pair-programmers (allowed per rules)
+
+## Demo script (4 min)
+
+1. "I have 2 acres in Bogura, budget 80k" → agent asks only the missing fields (soil, water, season).
+2. Watch the trace: geocode → live 14-day forecast → RAG lookups → 3 crop rankings each with financials → recommendation with stated reasons.
+3. Pick a crop → dated calendar (land prep → fertilizer splits → irrigation → pest checkpoints → harvest) + full financial projection.
+4. "What if my budget is cut 40%?" → re-ran financials, changed numbers side-by-side.
+5. Buy seed → bdapps sandbox checkout, request/response + receipt in the trace.
+6. Refresh the page mid-demo → the agent still remembers the farm (persistent memory).

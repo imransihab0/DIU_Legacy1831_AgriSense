@@ -1,0 +1,17 @@
+{
+  "_mock": true,
+  "_note": "MOCK/SEEDED farm-gate price catalog (BDT per kg), indicative of recent Bangladesh DAM market reports. Clearly labeled mock per hackathon rules; live weather is real, prices are seeded.",
+  "currency": "BDT",
+  "unit": "per_kg",
+  "prices": {
+    "rice_paddy": {"crop": "Rice (paddy)", "farm_gate": 32, "retail": 52},
+    "wheat": {"crop": "Wheat", "farm_gate": 35, "retail": 48},
+    "maize": {"crop": "Maize", "farm_gate": 29, "retail": 38},
+    "potato": {"crop": "Potato", "farm_gate": 18, "retail": 30},
+    "mustard": {"crop": "Mustard seed", "farm_gate": 82, "retail": 110},
+    "lentil": {"crop": "Lentil (Masur)", "farm_gate": 98, "retail": 135},
+    "onion": {"crop": "Onion", "farm_gate": 48, "retail": 70},
+    "jute": {"crop": "Jute fibre", "farm_gate": 55, "retail": null},
+    "tomato": {"crop": "Tomato", "farm_gate": 22, "retail": 40}
+  }
+}

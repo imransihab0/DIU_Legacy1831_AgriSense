@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriSense AI — DIU_Legacy1831</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🌾 AgriSense AI</h1>
+      <span class="sub">Autonomous season-planning agent · Team DIU_Legacy1831</span>
+    </div>
+    <div class="header-right">
+      <span id="health" class="pill">…</span>
+      <button id="resetBtn" title="Forget this farm and start over">New farm</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="chatPane">
+      <div id="messages"></div>
+      <form id="composer">
+        <input id="input" autocomplete="off"
+               placeholder="e.g. I have 2 acres in Bogura, what should I plant this winter?" />
+        <button type="submit" id="sendBtn">Send</button>
+      </form>
+    </section>
+
+    <aside id="tracePane">
+      <div class="trace-header">
+        <h2>🔍 Agent Trace</h2>
+        <span class="sub">every tool call · params sent · raw values returned</span>
+      </div>
+      <div id="trace"></div>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

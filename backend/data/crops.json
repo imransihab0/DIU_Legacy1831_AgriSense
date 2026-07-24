@@ -1,0 +1,155 @@
+{
+  "_note": "Seeded per-acre reference data compiled from publicly available Bangladesh extension sources (BARC Fertilizer Recommendation Guide, DAE/BRRI crop production guides). Costs in BDT per acre, yields in kg per acre. Used by the deterministic financial engine; the LLM never invents these numbers.",
+  "crops": {
+    "boro_rice": {
+      "display": "Boro Rice (irrigated)",
+      "season": "rabi",
+      "sowing_window": "Dec 15 - Jan 31 (transplanting)",
+      "duration_days": 145,
+      "water_need": "very high (full irrigation)",
+      "risk_level": "medium",
+      "suitable_soils": ["clay", "clay loam", "loam"],
+      "yield_kg_per_acre": 2400,
+      "price_key": "rice_paddy",
+      "costs_bdt_per_acre": {
+        "seed": 2000, "land_preparation": 6500, "fertilizer": 12000,
+        "irrigation": 11000, "labor": 24000, "pesticide": 3500, "harvest_transport": 8000
+      }
+    },
+    "aman_rice": {
+      "display": "Aman Rice (rainfed)",
+      "season": "kharif",
+      "sowing_window": "Jun 15 - Aug 15 (transplanting)",
+      "duration_days": 130,
+      "water_need": "medium (mostly rainfed)",
+      "risk_level": "medium (flood risk)",
+      "suitable_soils": ["clay", "clay loam", "loam"],
+      "yield_kg_per_acre": 1900,
+      "price_key": "rice_paddy",
+      "costs_bdt_per_acre": {
+        "seed": 1800, "land_preparation": 6000, "fertilizer": 9500,
+        "irrigation": 3000, "labor": 22000, "pesticide": 3000, "harvest_transport": 7500
+      }
+    },
+    "wheat": {
+      "display": "Wheat",
+      "season": "rabi",
+      "sowing_window": "Nov 15 - Dec 15",
+      "duration_days": 110,
+      "water_need": "low-medium (2-3 irrigations)",
+      "risk_level": "low",
+      "suitable_soils": ["loam", "sandy loam", "clay loam"],
+      "yield_kg_per_acre": 1400,
+      "price_key": "wheat",
+      "costs_bdt_per_acre": {
+        "seed": 3200, "land_preparation": 5500, "fertilizer": 9000,
+        "irrigation": 4500, "labor": 14000, "pesticide": 2000, "harvest_transport": 6000
+      }
+    },
+    "maize": {
+      "display": "Maize (hybrid)",
+      "season": "rabi",
+      "sowing_window": "Nov 1 - Dec 31",
+      "duration_days": 140,
+      "water_need": "medium (3-4 irrigations)",
+      "risk_level": "low",
+      "suitable_soils": ["loam", "sandy loam", "clay loam"],
+      "yield_kg_per_acre": 3600,
+      "price_key": "maize",
+      "costs_bdt_per_acre": {
+        "seed": 4500, "land_preparation": 6000, "fertilizer": 13000,
+        "irrigation": 6000, "labor": 16000, "pesticide": 2500, "harvest_transport": 7000
+      }
+    },
+    "potato": {
+      "display": "Potato",
+      "season": "rabi",
+      "sowing_window": "Nov 10 - Dec 10",
+      "duration_days": 95,
+      "water_need": "medium (4-6 light irrigations)",
+      "risk_level": "high (late blight, price crash)",
+      "suitable_soils": ["sandy loam", "loam"],
+      "yield_kg_per_acre": 8500,
+      "price_key": "potato",
+      "costs_bdt_per_acre": {
+        "seed": 58000, "land_preparation": 7000, "fertilizer": 16000,
+        "irrigation": 6000, "labor": 26000, "pesticide": 8000, "harvest_transport": 10000
+      }
+    },
+    "mustard": {
+      "display": "Mustard",
+      "season": "rabi",
+      "sowing_window": "Oct 15 - Nov 15",
+      "duration_days": 90,
+      "water_need": "low (1-2 irrigations)",
+      "risk_level": "low",
+      "suitable_soils": ["loam", "sandy loam", "clay loam"],
+      "yield_kg_per_acre": 550,
+      "price_key": "mustard",
+      "costs_bdt_per_acre": {
+        "seed": 500, "land_preparation": 5000, "fertilizer": 6500,
+        "irrigation": 2500, "labor": 9000, "pesticide": 1500, "harvest_transport": 4000
+      }
+    },
+    "lentil": {
+      "display": "Lentil (Masur)",
+      "season": "rabi",
+      "sowing_window": "Oct 20 - Nov 20",
+      "duration_days": 105,
+      "water_need": "very low (residual moisture)",
+      "risk_level": "medium (stemphylium blight)",
+      "suitable_soils": ["loam", "clay loam"],
+      "yield_kg_per_acre": 650,
+      "price_key": "lentil",
+      "costs_bdt_per_acre": {
+        "seed": 2800, "land_preparation": 4500, "fertilizer": 4000,
+        "irrigation": 1000, "labor": 10000, "pesticide": 2000, "harvest_transport": 4000
+      }
+    },
+    "onion": {
+      "display": "Onion",
+      "season": "rabi",
+      "sowing_window": "Nov 1 - Dec 15 (transplanting)",
+      "duration_days": 110,
+      "water_need": "medium (frequent light irrigation)",
+      "risk_level": "high (storage loss, price swings)",
+      "suitable_soils": ["loam", "sandy loam"],
+      "yield_kg_per_acre": 4000,
+      "price_key": "onion",
+      "costs_bdt_per_acre": {
+        "seed": 12000, "land_preparation": 7000, "fertilizer": 14000,
+        "irrigation": 7000, "labor": 30000, "pesticide": 5000, "harvest_transport": 8000
+      }
+    },
+    "jute": {
+      "display": "Jute",
+      "season": "kharif",
+      "sowing_window": "Mar 15 - Apr 30",
+      "duration_days": 120,
+      "water_need": "medium (pre-monsoon rain critical)",
+      "risk_level": "medium",
+      "suitable_soils": ["loam", "clay loam", "sandy loam"],
+      "yield_kg_per_acre": 1100,
+      "price_key": "jute",
+      "costs_bdt_per_acre": {
+        "seed": 800, "land_preparation": 6000, "fertilizer": 6000,
+        "irrigation": 2000, "labor": 24000, "pesticide": 1800, "harvest_transport": 6000
+      }
+    },
+    "tomato": {
+      "display": "Tomato (winter)",
+      "season": "rabi",
+      "sowing_window": "Oct 1 - Nov 15 (transplanting)",
+      "duration_days": 110,
+      "water_need": "medium (regular light irrigation)",
+      "risk_level": "high (perishable, virus)",
+      "suitable_soils": ["loam", "sandy loam"],
+      "yield_kg_per_acre": 9000,
+      "price_key": "tomato",
+      "costs_bdt_per_acre": {
+        "seed": 4000, "land_preparation": 7000, "fertilizer": 15000,
+        "irrigation": 6000, "labor": 35000, "pesticide": 9000, "harvest_transport": 12000
+      }
+    }
+  }
+}
