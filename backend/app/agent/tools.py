@@ -1,6 +1,6 @@
 """Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
 import functools
-from ..tools import weather, market, finance, bdapps
+from ..tools import weather, market, finance, bdapps, season_plan, livestock
 from ..rag import store
 from .. import db
 
@@ -75,6 +75,51 @@ TOOL_SPECS = [
                 "price_factor": {"type": "number", "description": "scenario multiplier, default 1.0"},
             },
             "required": ["crop", "area_acres"],
+        },
+    },
+    {
+        "name": "generate_season_plan",
+        "description": "Deterministic DATED season calendar for the CHOSEN crop: land prep, sowing/transplanting, fertilizer split dates, irrigation, weed/pest checkpoints, harvest — computed in Python from the crop's duration and a standard agronomic schedule, with validation. ALWAYS call this to build the calendar (Tier 0 #4) instead of writing dates yourself. It returns only TIMING; get fertilizer DOSES from search_knowledge_base (FRG) and attach them, and shift N-application dates around the live forecast.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "crop": {"type": "string", "description": "one of: boro_rice, aman_rice, wheat, maize, potato, mustard, lentil, onion, jute, tomato"},
+                "start_date": {"type": "string", "description": "sowing (direct) or transplanting date, YYYY-MM-DD. Omit to derive the next upcoming date from the crop's sowing window."},
+                "area_acres": {"type": "number"},
+                "soil_type": {"type": "string"},
+            },
+            "required": ["crop"],
+        },
+    },
+    {
+        "name": "compute_livestock_financials",
+        "description": "Deterministic livestock financial engine (animals, not crops): itemized costs, output (live weight / milk / eggs), revenue, net profit, ROI, break-even for a batch over one production cycle. Use for ANY animal profit/cost question (broiler, layer, goat_fattening, beef_fattening, dairy_cow). ALL animal money math must come from this tool. Supports scenario overrides: yield_factor / cost_factor / price_factor and a mortality_pct override.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "animal": {"type": "string", "description": "one of: broiler, layer, goat_fattening, beef_fattening, dairy_cow"},
+                "count": {"type": "number", "description": "number of animals/birds; omit to use a typical batch size"},
+                "price_override": {"type": "number", "description": "override sale price (per kg for meat, per litre milk, per egg) if the farmer states one"},
+                "yield_factor": {"type": "number", "description": "scenario multiplier on output per animal, default 1.0"},
+                "cost_factor": {"type": "number", "description": "scenario multiplier on costs, default 1.0"},
+                "price_factor": {"type": "number", "description": "scenario multiplier on price, default 1.0"},
+                "mortality_pct": {"type": "number", "description": "override mortality percentage for a scenario"},
+                "budget_bdt": {"type": "number", "description": "farmer's budget, to check affordability"},
+            },
+            "required": ["animal"],
+        },
+    },
+    {
+        "name": "generate_livestock_plan",
+        "description": "Deterministic DATED rearing + vaccination calendar for an animal batch: procurement/placement, vaccination & deworming dates, feed-phase changes, health/weight checkpoints, and sale/end-of-cycle — computed in Python from the cycle length and a standard DLS/BLRI schedule, with validation. ALWAYS call this to build an animal's schedule instead of writing dates yourself. Pair with search_knowledge_base for feeding/disease detail.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "animal": {"type": "string", "description": "one of: broiler, layer, goat_fattening, beef_fattening, dairy_cow"},
+                "count": {"type": "number", "description": "number of animals/birds (optional)"},
+                "start_date": {"type": "string", "description": "cycle start (chick placement / procurement / calving) YYYY-MM-DD; omit to start today"},
+            },
+            "required": ["animal"],
         },
     },
     {
@@ -159,6 +204,12 @@ def dispatch(session_id: str, name: str, args: dict):
             return market.get_input_prices(**args)
         if name == "compute_financials":
             return finance.compute_financials(**args)
+        if name == "generate_season_plan":
+            return season_plan.generate_season_plan(**args)
+        if name == "compute_livestock_financials":
+            return livestock.compute_livestock_financials(**args)
+        if name == "generate_livestock_plan":
+            return livestock.generate_livestock_plan(**args)
         if name == "save_farm_profile":
             return {"saved_profile": db.save_profile(session_id, args)}
         if name == "bdapps_query_balance":

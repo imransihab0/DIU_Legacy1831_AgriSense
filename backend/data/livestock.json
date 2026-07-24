@@ -1,0 +1,68 @@
+{
+  "_note": "Seeded per-unit reference data for livestock, compiled from publicly available Bangladesh sources (Department of Livestock Services DLS, BLRI extension guidance). Costs in BDT per animal/bird over one production cycle; the deterministic engine uses these — the LLM never invents them. Prices are indicative reference values, confirm locally. Vaccination schedules are standard DLS/BLRI practice; confirm with a local vet.",
+  "animals": {
+    "broiler": {
+      "display": "Broiler chicken (batch)",
+      "unit": "bird",
+      "typical_count": 100,
+      "cycle_days": 35,
+      "mortality_pct": 7,
+      "costs_bdt_per_unit": {
+        "day_old_chick": 55, "feed": 210, "vaccine_medicine": 18,
+        "labor": 15, "litter_housing_misc": 12
+      },
+      "revenue": {"type": "weight", "sale_weight_kg": 1.8, "price_per_kg": 165}
+    },
+    "layer": {
+      "display": "Layer hen (one laying cycle)",
+      "unit": "bird",
+      "typical_count": 100,
+      "cycle_days": 365,
+      "mortality_pct": 10,
+      "costs_bdt_per_unit": {
+        "pullet": 320, "feed": 1650, "vaccine_medicine": 70,
+        "labor": 120, "housing_misc": 90
+      },
+      "revenue": {"type": "product", "product": "eggs", "yield_per_unit": 250,
+                  "price_per_unit": 11, "salvage_bdt_per_unit": 220}
+    },
+    "goat_fattening": {
+      "display": "Goat fattening (Black Bengal)",
+      "unit": "goat",
+      "typical_count": 10,
+      "cycle_days": 180,
+      "mortality_pct": 5,
+      "costs_bdt_per_unit": {
+        "kid_purchase": 5500, "feed": 3200, "vaccine_deworming": 250,
+        "labor": 800, "housing_misc": 300
+      },
+      "revenue": {"type": "weight", "sale_weight_kg": 18, "price_per_kg": 650}
+    },
+    "beef_fattening": {
+      "display": "Beef cattle fattening (bull)",
+      "unit": "bull",
+      "typical_count": 2,
+      "cycle_days": 150,
+      "mortality_pct": 2,
+      "costs_bdt_per_unit": {
+        "animal_purchase": 85000, "feed": 32000, "vaccine_vet": 1500,
+        "labor": 6000, "housing_misc": 2000
+      },
+      "revenue": {"type": "weight", "sale_weight_kg": 220, "price_per_kg": 600}
+    },
+    "dairy_cow": {
+      "display": "Dairy cow (one lactation)",
+      "unit": "cow",
+      "typical_count": 2,
+      "cycle_days": 305,
+      "mortality_pct": 1,
+      "note": "Cow is a reused asset, so its purchase is NOT a per-cycle cost; only running costs are counted.",
+      "costs_bdt_per_unit": {
+        "feed": 90000, "vaccine_vet": 2500, "labor": 18000,
+        "housing_misc": 4000, "ai_breeding": 1200
+      },
+      "revenue": {"type": "product", "product": "milk (litres)", "yield_per_unit": 2135,
+                  "price_per_unit": 60, "salvage_bdt_per_unit": 0}
+    }
+  }
+}
