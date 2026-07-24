@@ -1,6 +1,6 @@
 """Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
 import functools
-from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers, soilmap
+from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers, soilmap, websearch
 from ..rag import store
 from .. import db
 
@@ -47,6 +47,18 @@ TOOL_SPECS = [
             "properties": {
                 "query": {"type": "string"},
                 "top_k": {"type": "integer", "description": "default 4"},
+            },
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "web_search",
+        "description": "LAST-RESORT web search for a FARMING fact NOT in the knowledge base or catalogs (e.g. a market price, crop variety, or current info you couldn't find via search_knowledge_base / get_market_prices). Returns UNVERIFIED web results and auto-saves them to the KB (tagged 'web (unverified)') so next time it's retrievable. Only call this AFTER the KB/catalog came up empty. Always tell the farmer the answer is web-sourced/unverified and to confirm locally; never present it as authoritative.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "focused search query, include location/BDT/Bangladesh where relevant"},
+                "top_k": {"type": "integer", "description": "number of results, default 5"},
             },
             "required": ["query"],
         },
@@ -269,6 +281,8 @@ def dispatch(session_id: str, name: str, args: dict):
             return weather.get_weather_forecast(**args)
         if name == "search_knowledge_base":
             return store.search_knowledge_base(**args)
+        if name == "web_search":
+            return websearch.web_search(**args)
         if name == "get_market_prices":
             return market.get_market_prices(**args)
         if name == "get_input_prices":

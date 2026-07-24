@@ -68,6 +68,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | Soil texture (by location) | **REAL geospatial** — SRDI soil-texture rasters (clay/sand/silt %) sampled at the farm's coordinates → USDA texture class → soil_type. Baked to a compact JSON (`lookup_soil_texture`); the agent auto-detects soil from location instead of asking |
 | Season-plan dates | **REAL computation** — deterministic Python calendar with validation (`generate_season_plan`); stage schedule from standard agronomic practice |
 | Livestock cost/yield baselines | **SEEDED reference** — labeled catalog (`backend/data/livestock.json`), from DLS/BLRI extension guidance; deterministic engine |
+| Web-search fallback | **REAL external search** (DuckDuckGo, no key) — only when the KB/catalogs have no answer; results are labeled **`web (unverified)`**, appended to the RAG KB (kept separate from vetted gov docs), and retrievable next time without re-searching. Agent always presents them as web-sourced/unverified |
 | Farm memory (SQLite) | **REAL** — persists across sessions |
 
 ## Tools & APIs used
