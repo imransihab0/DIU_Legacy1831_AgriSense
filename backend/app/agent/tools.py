@@ -1,6 +1,6 @@
 """Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
 import functools
-from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers, soilmap, websearch
+from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers, soilmap, websearch, awdmap
 from ..rag import store
 from .. import db
 
@@ -22,6 +22,19 @@ TOOL_SPECS = [
             "properties": {
                 "latitude": {"type": "number"},
                 "longitude": {"type": "number"},
+            },
+            "required": ["latitude", "longitude"],
+        },
+    },
+    {
+        "name": "lookup_awd_suitability",
+        "description": "Check whether AWD (Alternate Wetting & Drying — a water-saving rice irrigation method) suits the farm's location, from the real BRRI/IRRI AWD suitability map. Returns a suitability class + whether AWD is recommended + est ~25-30% irrigation saving. Use for RICE water/irrigation advice — call geocode_location first for lat/lon. Combine with compute_financials to show the taka saved on irrigation.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "latitude": {"type": "number"},
+                "longitude": {"type": "number"},
+                "season": {"type": "string", "description": "boro, aman, or aus (default boro)"},
             },
             "required": ["latitude", "longitude"],
         },
@@ -277,6 +290,8 @@ def dispatch(session_id: str, name: str, args: dict):
             return weather.geocode_location(**args)
         if name == "lookup_soil_texture":
             return soilmap.lookup_soil_texture(**args)
+        if name == "lookup_awd_suitability":
+            return awdmap.lookup_awd_suitability(**args)
         if name == "get_weather_forecast":
             return weather.get_weather_forecast(**args)
         if name == "search_knowledge_base":
