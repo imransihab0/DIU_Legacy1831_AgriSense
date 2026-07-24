@@ -43,13 +43,14 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | 1 | Conversational intake + targeted follow-ups | System prompt intake protocol; `save_farm_profile` persists each field |
 | 2 | Live weather grounding | `geocode_location` + `get_weather_forecast` → **Open-Meteo (real API, no mock)** |
 | 3 | Crop recommendation (≥3, ranked) | Agent workflow step 4: RAG suitability + per-crop `compute_financials` |
-| 4 | Season plan (dated calendar) | Agent workflow step 5, grounded in KB crop calendars + live forecast |
+| 4 | Season plan (dated calendar) | **`generate_season_plan`** — deterministic, self-validating dated calendar (land prep→sowing→fertilizer splits→irrigation→pest checkpoints→harvest); doses layered from KB, dates adjusted to live forecast |
 | 5 | Financial projection | `compute_financials` — deterministic Python; itemized costs, yield, revenue, net, ROI, break-even; changes correctly with inputs |
 | 6 | Explained reasoning | Grounding rules force every recommendation to state its inputs |
 | 7 | Knowledge base with RAG | ChromaDB over `backend/data/kb/` (BARC FRG, DAE/BRRI-derived docs) |
 | 8 | Visible agent trace | Right-hand panel streams every tool call: name, params, raw result, latency |
 
-**Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (KB-grounded splits with dates).
+**Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (deterministic dated splits from `generate_season_plan`, doses from KB).
+**Livestock (beyond crops):** animals get full parity — `compute_livestock_financials` (broiler/layer/goat/beef/dairy: cost, revenue, net, ROI, break-even per cycle) and `generate_livestock_plan` (dated procurement→vaccination→sale calendar), grounded in a DLS/BLRI livestock KB doc.
 **Tier 2:** bdapps CaaS payment — complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) implemented against the official API spec; real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
 
 ## Real vs mock (required disclosure)
@@ -64,6 +65,8 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | Market (crop output) prices | **MOCK/SEEDED** — labeled catalog (`backend/data/market_prices.json`), indicative of DAM reports |
 | Farm input prices (fertilizer/seed/pesticide) | **SEEDED reference** — labeled catalog (`backend/data/input_prices.json`), indicative of BADC/DAE dealer rates; powers the input cart + checkout |
 | bdapps CaaS payment | **Dual mode** — with `BDAPPS_APP_ID`/`BDAPPS_PASSWORD` set: **REAL sandbox HTTP calls** to `developer.bdapps.com` (`/caas/get/balance`, `/caas/direct/debit`, `/sms/send`); without: **labeled simulation** with byte-identical request/response schemas. Full flow (balance → debit → SMS receipt) visible in trace either way |
+| Season-plan dates | **REAL computation** — deterministic Python calendar with validation (`generate_season_plan`); stage schedule from standard agronomic practice |
+| Livestock cost/yield baselines | **SEEDED reference** — labeled catalog (`backend/data/livestock.json`), from DLS/BLRI extension guidance; deterministic engine |
 | Farm memory (SQLite) | **REAL** — persists across sessions |
 
 ## Tools & APIs used

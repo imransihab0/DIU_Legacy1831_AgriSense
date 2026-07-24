@@ -10,3 +10,10 @@ Agentic_AI_Hackathon_Final_Question.pdf
 .DS_Store
 backend/data/masked_ids.json
 backend/data/weather_cache.json
+
+# Raw source PDFs / geospatial rasters (huge; keep out of git). The extraction
+# prompts under pdfs/extraction_prompts/ ARE tracked — only the binaries are ignored.
+pdfs/*.pdf
+pdfs/.tif/
+pdfs/**/*.tif
+pdfs/**/*.rar
