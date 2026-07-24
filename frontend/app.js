@@ -129,12 +129,18 @@ $("resetBtn").addEventListener("click", async () => {
   location.reload();
 });
 
-// ---- Agent message rendering: extract [[BUTTON]] / [[SHORTCUT]] / [[REMOVE_SHORTCUT]] tokens ----
+// ---- Agent message rendering: extract action tokens ----
+const PAY_RE = /\[\[CONFIRM_PAY:([^\]|]+)\|([^\]|]+)\|([^\]]+)\]\]/g;
 const TOKEN_RE = /\[\[(BUTTON|SHORTCUT|REMOVE_SHORTCUT):([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
 function renderAgentMessage(el, content) {
   const buttons = [];
-  const text = content.replace(TOKEN_RE, (_, kind, label, msg) => {
+  let pay = null;
+  let text = content.replace(PAY_RE, (_, amt, item, num) => {
+    pay = { amt: amt.trim(), item: item.trim(), num: num.trim() };
+    return "";
+  });
+  text = text.replace(TOKEN_RE, (_, kind, label, msg) => {
     if (kind === "SHORTCUT" && msg) addShortcut(label.trim(), msg.trim());
     else if (kind === "REMOVE_SHORTCUT") removeShortcutFuzzy(label.trim());
     else if (kind === "BUTTON" && msg) buttons.push({ label: label.trim(), msg: msg.trim() });
@@ -142,7 +148,8 @@ function renderAgentMessage(el, content) {
   }).trim();
 
   el.innerHTML = marked.parse(text);
-  if (buttons.length) {
+
+  if (buttons.length || pay) {
     const row = document.createElement("div");
     row.className = "inline-actions";
     for (const b of buttons) {
@@ -157,8 +164,31 @@ function renderAgentMessage(el, content) {
       });
       row.appendChild(btn);
     }
+    if (pay) {
+      const btn = document.createElement("button");
+      btn.className = "chip inline confirm";
+      btn.textContent = "✅ কনফার্ম করুন";
+      btn.addEventListener("click", () => { if (!$("sendBtn").disabled) openPayModal(pay); });
+      row.appendChild(btn);
+    }
     el.appendChild(row);
   }
+}
+
+// ---- Payment confirmation modal ----
+function openPayModal(pay) {
+  $("payDetails").innerHTML =
+    `<div class="pay-row">পণ্য: <b>${escapeHtml(pay.item)}</b></div>` +
+    `<div class="pay-row">মোবাইল নম্বর: <b>${escapeHtml(pay.num)}</b></div>` +
+    `<div class="pay-row total">মোট কাটা হবে: <b>৳${escapeHtml(pay.amt)}</b></div>` +
+    `<div class="pay-warn">আপনার মোবাইল ব্যালেন্স থেকে ৳${escapeHtml(pay.amt)} কেটে নেওয়া হবে। আপনি কি নিশ্চিত?</div>`;
+  const modal = $("payModal");
+  modal.classList.remove("hidden");
+  $("payYes").onclick = () => {
+    modal.classList.add("hidden");
+    if (!$("sendBtn").disabled) send(`কনফার্ম, ${pay.item} এর জন্য ৳${pay.amt} পেমেন্ট করে দিন`);
+  };
+  $("payNo").onclick = () => modal.classList.add("hidden");
 }
 
 // ---- Quick-action chips (advisory suggestions) + user-created shortcuts ----

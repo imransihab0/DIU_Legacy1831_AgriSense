@@ -68,6 +68,29 @@ main { flex: 1; display: flex; min-height: 0; }
 .inline-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .chip.inline { padding: 8px 16px; font-size: .88rem; }
 
+/* payment confirmation modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: #fff; border-radius: 14px; padding: 22px 24px; width: min(90vw, 380px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.3); text-align: center;
+}
+.modal h3 { color: #b26a00; margin-bottom: 14px; font-size: 1.1rem; }
+#payDetails { text-align: left; font-size: .95rem; }
+.pay-row { padding: 5px 0; border-bottom: 1px dashed #e0e6da; }
+.pay-row.total { font-size: 1.15rem; color: #1d4d2b; border-bottom: 0; padding-top: 10px; }
+.pay-warn { margin-top: 12px; background: #fff6e5; border: 1px solid #f0c877; color: #7a5200;
+  border-radius: 8px; padding: 9px 11px; font-size: .85rem; }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.mbtn { flex: 1; padding: 12px; border: 0; border-radius: 9px; font-size: .95rem; font-weight: 700; cursor: pointer; }
+.mbtn.yes { background: #2c7a3f; color: #fff; }
+.mbtn.yes:hover { background: #24632f; }
+.mbtn.no { background: #eceee6; color: #444; }
+.mbtn.no:hover { background: #dfe3da; }
+
 #dragbar {
   width: 6px; cursor: col-resize; background: #d6ddd2;
   flex: 0 0 6px; transition: background .12s;
