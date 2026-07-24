@@ -41,7 +41,7 @@ TOOL_SPECS = [
     },
     {
         "name": "search_knowledge_base",
-        "description": "RAG search over the agronomy knowledge base (BARC fertilizer guide, DAE/BRRI crop calendars, pest management, soil/water guides). Use for fertilizer doses, sowing windows, pest advice, soil suitability. Cite the returned source names.",
+        "description": "RAG search over the knowledge base: BARC FRG fertilizer doses, BRRI rice cultivation, DAE/pest management, soil/yield references — AND real DAM division-wise retail MARKET PRICE reports (dated current + last-month + last-year prices with % change, for grains, pulses, vegetables, spices, fish, etc.). Use for fertilizer doses, sowing windows, pest advice, soil suitability, AND real crop market/sell prices (query with the item + the farmer's division). Cite the returned source names.",
         "parameters": {
             "type": "object",
             "properties": {
