@@ -70,7 +70,9 @@ function addMessage(role, html) {
   return div;
 }
 
+const traceLog = [];  // full trace, for the copy/export button
 function addTrace(kind, title, payload) {
+  traceLog.push({ kind, title, payload });
   const div = document.createElement("div");
   div.className = "trace-item " + kind;
   const body = payload !== undefined
@@ -145,6 +147,23 @@ $("composer").addEventListener("submit", (e) => {
   if (!v) return;
   $("input").value = "";
   send(v);
+});
+
+$("traceCopy").addEventListener("click", async () => {
+  const text = traceLog.map((e) =>
+    e.payload !== undefined
+      ? `${e.title}\n${JSON.stringify(e.payload, null, 2)}`
+      : e.title
+  ).join("\n\n") || "(trace is empty)";
+  try {
+    await navigator.clipboard.writeText(text);
+    const b = $("traceCopy"); const old = b.textContent;
+    b.textContent = "✓ Copied"; setTimeout(() => (b.textContent = old), 1500);
+  } catch (_) {
+    // clipboard blocked → open the trace as text so a judge can still grab it
+    const w = window.open("", "_blank");
+    if (w) { w.document.write("<pre>" + escapeHtml(text) + "</pre>"); }
+  }
 });
 
 $("resetBtn").addEventListener("click", async () => {

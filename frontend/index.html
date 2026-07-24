@@ -40,7 +40,10 @@
           <h2>🔍 Agent Trace</h2>
           <span class="sub">every tool call · params sent · raw values returned</span>
         </div>
-        <button id="traceToggle" title="Collapse / expand trace panel">⟩</button>
+        <div class="trace-btns">
+          <button id="traceCopy" title="Copy the full agent trace">📋 Copy</button>
+          <button id="traceToggle" title="Collapse / expand trace panel">⟩</button>
+        </div>
       </div>
       <div id="trace"></div>
     </aside>

@@ -126,10 +126,12 @@ main { flex: 1; display: flex; min-height: 0; }
 #dragbar:hover, #dragbar.dragging { background: #2c7a3f; }
 
 .trace-header { display: flex; justify-content: space-between; align-items: flex-start; }
-#traceToggle {
+.trace-btns { display: flex; gap: 6px; }
+#traceToggle, #traceCopy {
   background: transparent; color: #cfe8d5; border: 1px solid #2c5a40;
-  border-radius: 5px; cursor: pointer; padding: 2px 8px; font-size: .9rem;
+  border-radius: 5px; cursor: pointer; padding: 2px 8px; font-size: .85rem; white-space: nowrap;
 }
+#traceCopy:hover, #traceToggle:hover { background: #1c3a2a; }
 #tracePane.collapsed { flex: 0 0 44px !important; min-width: 44px; }
 #tracePane.collapsed .trace-header h2 span,
 #tracePane.collapsed .trace-header .sub,
