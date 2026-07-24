@@ -78,7 +78,7 @@ def query_balance(subscriber_number: str) -> dict:
         "applicationId": BDAPPS_APP_ID or "APP_999999",
         "password": BDAPPS_PASSWORD or "***sandbox***",
         "subscriberId": _subscriber_id(subscriber_number),
-        "paymentInstrumentName": "MobileAccount",
+        "paymentInstrumentName": "Mobile Account",
         "currency": "BDT",
     }
     if _live():
@@ -114,7 +114,7 @@ def direct_debit(subscriber_number: str, amount_bdt: float) -> dict:
         "password": BDAPPS_PASSWORD or "***sandbox***",
         "externalTrxId": f"AGRI{int(time.time() * 1000)}{random.randint(100, 999)}",
         "subscriberId": _subscriber_id(subscriber_number),
-        "paymentInstrumentName": "MobileAccount",
+        "paymentInstrumentName": "Mobile Account",
         "amount": f"{amount:.2f}",
         "currency": "BDT",
     }
@@ -173,18 +173,40 @@ def list_payment_instruments(subscriber_number: str) -> dict:
 
 # ---------------- sms/send (receipts + proactive alerts) ----------------
 
+def _masked_from_sms(resp: dict) -> str | None:
+    """Masked apps reply E1951 with the subscriber's MASKED id in the address field.
+    Capture it so we can retry and reuse it for all later CaaS/SMS calls."""
+    drs = resp.get("destinationResponses") or []
+    if str(resp.get("statusCode")) == "E1951" and drs:
+        addr = drs[0].get("address")
+        if addr and addr.startswith("tel:") and not addr[4:].isdigit():
+            return addr
+    return None
+
+
 def send_sms(subscriber_number: str, message: str) -> dict:
-    request_payload = {
-        "version": "1.0",
-        "applicationId": BDAPPS_APP_ID or "APP_999999",
-        "password": BDAPPS_PASSWORD or "***sandbox***",
-        "message": message,
-        "destinationAddresses": [_subscriber_id(subscriber_number)],
-    }
-    if _has_bengali(message):
-        request_payload["encoding"] = "16"  # Bengali encoding per API guide
+    def _payload(sid: str) -> dict:
+        p = {
+            "version": "1.0",
+            "applicationId": BDAPPS_APP_ID or "APP_999999",
+            "password": BDAPPS_PASSWORD or "***sandbox***",
+            "message": message,
+            "destinationAddresses": [sid],
+        }
+        if _has_bengali(message):
+            p["encoding"] = "16"  # Bengali encoding per API guide
+        return p
+
+    request_payload = _payload(_subscriber_id(subscriber_number))
     if _live():
         response_payload = _post("/sms/send", request_payload)
+        masked = _masked_from_sms(response_payload)
+        if masked and masked != request_payload["destinationAddresses"][0]:
+            # masked app: register the masked subscriberId and retry once
+            _MASKED_IDS[subscriber_number.strip()] = masked
+            _save_masked_ids()
+            request_payload = _payload(masked)
+            response_payload = _post("/sms/send", request_payload)
     else:
         response_payload = {
             "version": "1.0",
@@ -298,6 +320,11 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
         }
     steps = []
 
+    # Masked apps (E1951) reject raw MSISDNs — resolve & register the subscriber's
+    # masked id first (an SMS that self-captures it) so the debit can go through.
+    if _live() and subscriber_number.strip() not in _MASKED_IDS:
+        steps.append(send_sms(subscriber_number, "AgriSense: verifying your number for a payment."))
+
     # On the live gateway, list/pi and balance/query may not be deployed
     # (404) — include them when available, skip gracefully when not.
     pi_step = list_payment_instruments(subscriber_number)
@@ -310,7 +337,8 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
         balance_step["response"] = {"note": "endpoint not deployed on live gateway - skipped"}
     steps.append(balance_step)
     try:
-        available = float(balance_step["response"].get("chargeableBalance", 0))
+        # no default -> None when balance is unavailable/skipped, so the check is skipped
+        available = float(balance_step["response"].get("chargeableBalance"))
     except (TypeError, ValueError):
         available = None
 
