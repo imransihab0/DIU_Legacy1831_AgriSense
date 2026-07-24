@@ -210,6 +210,9 @@ fetch("/api/inputs").then((r) => r.json()).then((d) => {
       INPUT_CATALOG.push({ key, name: it.name, unit: it.unit, price: it.price, cat: label[cat] || cat });
 }).catch(() => {});
 
+const MAX_QTY = 999;            // per-item quantity cap
+const MAX_ORDER_BDT = 100000;   // total order ceiling (like any real checkout)
+
 function addOrderRow() {
   const row = document.createElement("div");
   row.className = "order-row";
@@ -218,7 +221,7 @@ function addOrderRow() {
     .map((it, i) => `<option value="${i}">${it.cat} — ${escapeHtml(it.name)} (৳${it.price}/${escapeHtml(it.unit)})</option>`)
     .join("");
   const qty = document.createElement("input");
-  qty.type = "number"; qty.min = "1"; qty.value = "1"; qty.className = "order-qty";
+  qty.type = "number"; qty.min = "1"; qty.max = String(MAX_QTY); qty.step = "1"; qty.value = "1"; qty.className = "order-qty";
   const line = document.createElement("span"); line.className = "order-line";
   const rm = document.createElement("button");
   rm.type = "button"; rm.className = "order-rm"; rm.textContent = "✕";
@@ -233,12 +236,24 @@ function updateOrderTotal() {
   let total = 0;
   $("orderRows").querySelectorAll(".order-row").forEach((row) => {
     const it = INPUT_CATALOG[+row.querySelector("select").value];
-    const q = Math.max(0, parseInt(row.querySelector(".order-qty").value) || 0);
+    const input = row.querySelector(".order-qty");
+    let q = Math.floor(parseFloat(input.value)) || 0;   // floor handles scientific/decimal input
+    q = Math.min(MAX_QTY, Math.max(0, q));               // clamp to [0, MAX_QTY]
+    if (String(q) !== input.value && document.activeElement !== input) input.value = q; // correct absurd entries
     const lt = it ? it.price * q : 0;
     total += lt;
     row.querySelector(".order-line").textContent = `৳${lt}`;
   });
   $("orderTotal").textContent = total;
+  const warn = $("orderWarn");
+  if (total > MAX_ORDER_BDT) {
+    warn.textContent = `⚠️ এক অর্ডারে সর্বোচ্চ ৳${MAX_ORDER_BDT.toLocaleString()} পর্যন্ত কেনা যাবে — পরিমাণ কমান।`;
+    warn.classList.remove("hidden");
+    $("orderConfirm").disabled = true;
+  } else {
+    warn.classList.add("hidden");
+    $("orderConfirm").disabled = false;
+  }
   return total;
 }
 
@@ -258,10 +273,10 @@ $("orderConfirm").onclick = () => {
   const phone = $("orderPhone").value.replace(/\s/g, "");
   const items = [...$("orderRows").querySelectorAll(".order-row")].map((row) => {
     const it = INPUT_CATALOG[+row.querySelector("select").value];
-    const q = Math.max(1, parseInt(row.querySelector(".order-qty").value) || 1);
+    const q = Math.min(MAX_QTY, Math.max(1, Math.floor(parseFloat(row.querySelector(".order-qty").value)) || 1));
     return `${q} x ${it.name} (${it.unit})`;  // include the unit so "1 bag/50kg" is unambiguous (ASCII for SMS)
   });
-  if (!total) return;
+  if (!total || total > MAX_ORDER_BDT) return;  // block empty or over-limit orders
   if (phone.replace(/\D/g, "").length < 11) { $("orderPhone").classList.add("err"); $("orderPhone").focus(); return; }
   localStorage.setItem("agrisense_phone", phone);
   $("orderModal").classList.add("hidden");

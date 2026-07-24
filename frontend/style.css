@@ -104,6 +104,9 @@ main { flex: 1; display: flex; min-height: 0; }
 .order-rm { border: 0; background: #f2e2e2; color: #a13; border-radius: 6px; width: 26px; height: 30px; cursor: pointer; }
 .linkbtn { background: none; border: 0; color: #2c7a3f; cursor: pointer; font-size: .88rem; padding: 8px 0; font-weight: 600; }
 .order-total { text-align: right; font-size: 1.15rem; color: #1d4d2b; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e0e6da; }
+.order-warn { margin-top: 6px; color: #a11; font-size: .82rem; background: #fdeeee; border: 1px solid #e7b7b7; border-radius: 6px; padding: 6px 8px; }
+.order-warn.hidden { display: none; }
+.mbtn.yes:disabled { background: #b9c7bd; cursor: not-allowed; }
 .order-phone { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
 .order-phone label { font-size: .82rem; color: #555; }
 .order-phone input { padding: 9px; border: 1px solid #cdd5c6; border-radius: 7px; font-size: .95rem; }

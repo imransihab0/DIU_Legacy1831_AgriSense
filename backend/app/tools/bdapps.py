@@ -329,6 +329,13 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
             "(call get_input_prices, multiply by quantities needed) to get the real total, "
             "then call bdapps_checkout with that total.",
         }
+    MAX_CHECKOUT_BDT = 100000  # per-transaction ceiling — reject absurd/erroneous amounts
+    if amount > MAX_CHECKOUT_BDT:
+        return {
+            "error": f"amount_bdt ৳{amount:,.0f} exceeds the ৳{MAX_CHECKOUT_BDT:,} per-transaction "
+            "limit. Tell the farmer the order is too large for a single mobile payment; suggest "
+            "splitting it or buying a smaller quantity. Do NOT charge.",
+        }
     steps = []
 
     # Masked apps (E1951) reject raw MSISDNs — resolve & register the subscriber's
