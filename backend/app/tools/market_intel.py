@@ -44,64 +44,88 @@ def _add_months(y: int, m: int, delta: int) -> tuple[int, int]:
     return idx // 12, idx % 12 + 1
 
 
-def market_price_intelligence(crop: str, max_store_months: int = MAX_STORE_MONTHS) -> dict:
-    """Current + modeled historical prices and a sell/store/wait recommendation."""
+def market_price_intelligence(
+    crop: str,
+    max_store_months: int = MAX_STORE_MONTHS,
+    current_price: float | None = None,
+    prev_month_price: float | None = None,
+    prev_year_price: float | None = None,
+) -> dict:
+    """Sell / store / wait recommendation.
+
+    If REAL DAM prices are passed (current_price, and optionally prev_month_price /
+    prev_year_price from the DAM division report), the analysis is anchored to them and
+    the real month-over-month trend drives the call. Otherwise it falls back to the
+    modeled seasonal curve. Storage cost + spoilage are always factored deterministically.
+    """
     pk = _resolve(crop)
     if not pk:
         return {"error": f"No price data for '{crop}'. Valid: {list(_SEAS)}"}
     p = _SEAS[pk]
     today = date.today()
-    # month-aware modeled price so "now" is consistent with the seasonal curve used
-    # for the store/wait projection; the static catalog price is kept as a reference.
-    current_price = _price(p, today.month)
-    catalog_price = _MARKET.get(pk, {}).get("farm_gate")
+    modeled_now = _price(p, today.month)
 
-    # modeled 12-month history (trailing)
-    history = []
-    for i in range(11, -1, -1):
-        y, m = _add_months(today.year, today.month, -i)
-        history.append({"month": f"{y}-{m:02d} ({_MONTHS[m]})", "price_bdt_per_kg": _price(p, m)})
-    cycle = [_price(p, m) for m in range(1, 13)]
+    real = current_price is not None
+    cur = round(float(current_price), 2) if real else modeled_now
+    scale = (cur / modeled_now) if (real and modeled_now) else 1.0  # anchor modeled shape to real price
+
+    def proj(month):
+        return round(_price(p, month) * scale, 2)
+
+    # real trend from the DAM report (if provided)
+    trend = {}
+    if real and prev_month_price:
+        trend["month_over_month_pct"] = round((cur - prev_month_price) / prev_month_price * 100, 1)
+    if real and prev_year_price:
+        trend["year_over_year_pct"] = round((cur - prev_year_price) / prev_year_price * 100, 1)
+    mom = trend.get("month_over_month_pct")
+
+    history = [{"month": f"{y}-{m:02d} ({_MONTHS[m]})", "price_bdt_per_kg": proj(m)}
+               for y, m in (_add_months(today.year, today.month, -i) for i in range(11, -1, -1))]
+    cycle = [proj(m) for m in range(1, 13)]
     lo, hi, med = min(cycle), max(cycle), round(sorted(cycle)[6], 2)
-
-    # where are we in the cycle now?
-    cur_model = _price(p, today.month)
-    if cur_model <= lo + (hi - lo) / 3:
+    lo0, hi0 = min(_price(p, m) for m in range(1, 13)), max(_price(p, m) for m in range(1, 13))
+    if modeled_now <= lo0 + (hi0 - lo0) / 3:
         position = "near the seasonal LOW (harvest glut) — a poor time to sell if you can store"
-    elif cur_model >= hi - (hi - lo) / 3:
+    elif modeled_now >= hi0 - (hi0 - lo0) / 3:
         position = "near the seasonal PEAK — a good time to sell"
     else:
         position = "mid-cycle"
 
-    # sell / store / wait
+    # ---- decision ----
     if not p["storable"]:
         rec = {"action": "sell_now",
                "reason": f"{_MARKET.get(pk,{}).get('crop',pk)} is highly perishable (~{p['spoilage_pct_per_month']}%/month loss) — storing is not viable. Sell at harvest."}
-        best = {"months": 0, "projected_price_bdt_per_kg": current_price, "net_after_costs_bdt_per_kg": current_price}
+    elif mom is not None and mom <= -3:
+        rec = {"action": "sell_now",
+               "reason": f"Per the DAM report the market is FALLING ({mom}% vs last month) — sell now before it drops further."}
     else:
-        best = {"months": 0, "projected_price_bdt_per_kg": current_price, "net_after_costs_bdt_per_kg": current_price}
+        best = {"months": 0, "projected_price_bdt_per_kg": cur, "net_after_costs_bdt_per_kg": cur}
         for n in range(1, max_store_months + 1):
             _, fm = _add_months(today.year, today.month, n)
-            proj = _price(p, fm)
-            net = round(proj * (1 - p["spoilage_pct_per_month"] / 100 * n) - p["storage_cost_bdt_per_kg_month"] * n, 2)
+            pr = proj(fm)
+            net = round(pr * (1 - p["spoilage_pct_per_month"] / 100 * n) - p["storage_cost_bdt_per_kg_month"] * n, 2)
             if net > best["net_after_costs_bdt_per_kg"]:
-                best = {"months": n, "projected_price_bdt_per_kg": proj, "net_after_costs_bdt_per_kg": net}
-        gain = round(best["net_after_costs_bdt_per_kg"] - current_price, 2)
-        gain_pct = round(gain / current_price * 100, 1) if current_price else 0
+                best = {"months": n, "projected_price_bdt_per_kg": pr, "net_after_costs_bdt_per_kg": net}
+        gain_pct = round((best["net_after_costs_bdt_per_kg"] - cur) / cur * 100, 1) if cur else 0
         if best["months"] == 0 or gain_pct < 5:
             rec = {"action": "sell_now",
-                   "reason": f"Storing doesn't beat selling now: best net after storage/spoilage is ৳{best['net_after_costs_bdt_per_kg']}/kg vs ৳{current_price}/kg current (only {gain_pct}% gain). Sell now and free up cash."}
+                   "reason": f"Storing doesn't beat selling now: best net after storage/spoilage is ৳{best['net_after_costs_bdt_per_kg']}/kg vs ৳{cur}/kg now (only {gain_pct}% gain). Sell now and free up cash."}
         else:
             _, tm = _add_months(today.year, today.month, best["months"])
+            reason = f"Prices typically rise toward {_MONTHS[tm]}: storing ~{best['months']} month(s) nets ~৳{best['net_after_costs_bdt_per_kg']}/kg after storage+spoilage vs ৳{cur}/kg now (+{gain_pct}%)."
+            if mom is not None and mom > 2:
+                reason += f" The DAM trend is also up {mom}% vs last month."
             rec = {"action": "store" if best["months"] >= 2 else "wait",
-                   "reason": f"Prices rise toward {_MONTHS[tm]}: storing ~{best['months']} month(s) nets ~৳{best['net_after_costs_bdt_per_kg']}/kg after storage+spoilage vs ৳{current_price}/kg now (+{gain_pct}%).",
-                   "target_month": _MONTHS[tm], "expected_net_bdt_per_kg": best["net_after_costs_bdt_per_kg"]}
+                   "reason": reason, "target_month": _MONTHS[tm],
+                   "expected_net_bdt_per_kg": best["net_after_costs_bdt_per_kg"]}
 
     return {
         "crop": _MARKET.get(pk, {}).get("crop", pk),
-        "current_price_bdt_per_kg": current_price,
-        "current_price_source": "modeled seasonal price for the current month (seeded; swap to DAM feed when available)",
-        "catalog_reference_bdt_per_kg": catalog_price,
+        "current_price_bdt_per_kg": cur,
+        "current_price_source": "REAL DAM report price" if real else "modeled seasonal (seeded)",
+        "real_trend": trend or None,
+        "catalog_reference_bdt_per_kg": _MARKET.get(pk, {}).get("farm_gate"),
         "seasonal_position": position,
         "modeled_12_month": {"low": lo, "high": hi, "median": med,
                              "low_month": _MONTHS[cycle.index(lo) + 1], "high_month": _MONTHS[cycle.index(hi) + 1]},
@@ -109,5 +133,6 @@ def market_price_intelligence(crop: str, max_store_months: int = MAX_STORE_MONTH
         "storage": {"storable": p["storable"], "cost_bdt_per_kg_month": p["storage_cost_bdt_per_kg_month"],
                     "spoilage_pct_per_month": p["spoilage_pct_per_month"]},
         "recommendation": rec,
-        "disclaimer": "SEEDED/MODELED seasonal prices (labeled) — not a live feed. Confirm at your local market/DAM before selling.",
+        "disclaimer": ("Combines the REAL DAM current price + month/year trend with deterministic storage/spoilage economics."
+                       if real else "SEEDED/MODELED seasonal prices (labeled). For a real figure, pass the DAM report price (search_knowledge_base)."),
     }

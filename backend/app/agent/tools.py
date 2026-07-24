@@ -182,11 +182,14 @@ TOOL_SPECS = [
     },
     {
         "name": "market_price_intelligence",
-        "description": "Crop SELL-side market intelligence: current price, a modeled 12-month price history/seasonal range, and a deterministic SELL-NOW / STORE / WAIT recommendation that accounts for the seasonal trend, storage cost and spoilage. Use when the farmer asks whether to sell now or hold, or about price trends. Prices are seeded/labeled.",
+        "description": "Crop SELL-side intelligence: a deterministic SELL-NOW / STORE / WAIT recommendation from the price trend + storage cost + spoilage. BEST PRACTICE: first search_knowledge_base for the farmer's DAM division report, read the item's REAL today / last-month / last-year prices, and pass them here as current_price / prev_month_price / prev_year_price — then the recommendation is anchored to real data and the real month-over-month trend. If you don't have real prices, call it with just the crop (it uses a modeled seasonal curve, labeled).",
         "parameters": {
             "type": "object",
             "properties": {
                 "crop": {"type": "string", "description": "crop or price key, e.g. potato, boro_rice, onion"},
+                "current_price": {"type": "number", "description": "REAL today's price (BDT/kg) from the DAM report, if available"},
+                "prev_month_price": {"type": "number", "description": "REAL last-month price (BDT/kg) from the DAM report, for the trend"},
+                "prev_year_price": {"type": "number", "description": "REAL last-year price (BDT/kg) from the DAM report, optional"},
                 "max_store_months": {"type": "integer", "description": "how many months the farmer could store; default 6"},
             },
             "required": ["crop"],
