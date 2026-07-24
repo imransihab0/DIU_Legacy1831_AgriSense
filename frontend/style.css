@@ -58,6 +58,15 @@ main { flex: 1; display: flex; min-height: 0; }
 .chip.buy { background: #2c7a3f; color: #fff; border-color: #2c7a3f; }
 .chip.buy:hover { background: #24632f; }
 .chip.confirm { background: #f0a500; color: #3a2c00; border-color: #f0a500; font-weight: 600; }
+.chip.add { border-style: dashed; color: #4a6b3f; }
+.chip.custom { background: #eef4ea; }
+.chip-x { margin-left: 7px; opacity: .5; font-size: .72rem; }
+.chip-x:hover { opacity: 1; color: #b02a2a; }
+.chip:disabled { opacity: .45; cursor: default; }
+
+/* contextual buttons that appear inside an agent message */
+.inline-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.chip.inline { padding: 8px 16px; font-size: .88rem; }
 
 #dragbar {
   width: 6px; cursor: col-resize; background: #d6ddd2;

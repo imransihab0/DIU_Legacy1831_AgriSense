@@ -107,7 +107,7 @@ function handleEvent(ev, thinkingEl) {
   } else if (ev.type === "tool_result") {
     addTrace("tool_result", `📥 RESULT ${ev.tool} (${ev.ms} ms)`, ev.result);
   } else if (ev.type === "final") {
-    thinkingEl.innerHTML = marked.parse(ev.content || "");
+    renderAgentMessage(thinkingEl, ev.content || "");
     addTrace("status", "✔ turn complete");
   } else if (ev.type === "error") {
     thinkingEl.innerHTML = `<span class="err">${escapeHtml(ev.text)}</span>`;
@@ -129,23 +129,96 @@ $("resetBtn").addEventListener("click", async () => {
   location.reload();
 });
 
-// ---- Quick-action chips ----
+// ---- Agent message rendering: extract [[BUTTON:..]] / [[SHORTCUT:..]] tokens ----
+const TOKEN_RE = /\[\[(BUTTON|SHORTCUT):([^\]|]+)\|([^\]]+)\]\]/g;
+
+function renderAgentMessage(el, content) {
+  const buttons = [];
+  const text = content.replace(TOKEN_RE, (_, kind, label, msg) => {
+    if (kind === "SHORTCUT") addShortcut(label.trim(), msg.trim());
+    else buttons.push({ label: label.trim(), msg: msg.trim() });
+    return "";
+  }).trim();
+
+  el.innerHTML = marked.parse(text);
+  if (buttons.length) {
+    const row = document.createElement("div");
+    row.className = "inline-actions";
+    for (const b of buttons) {
+      const btn = document.createElement("button");
+      const buy = /কিন|buy|🛒/i.test(b.label);
+      btn.className = "chip inline " + (buy ? "buy" : "confirm");
+      btn.textContent = b.label;
+      btn.addEventListener("click", () => {
+        if ($("sendBtn").disabled) return;
+        row.querySelectorAll("button").forEach((x) => (x.disabled = true));
+        send(b.msg);
+      });
+      row.appendChild(btn);
+    }
+    el.appendChild(row);
+  }
+}
+
+// ---- Quick-action chips (advisory suggestions) + user-created shortcuts ----
 const QUICK_ACTIONS = [
   { label: "🌾 প্ল্যান দিন", text: "আমার জমির জন্য একটি সম্পূর্ণ মৌসুমি প্ল্যান দিন।" },
   { label: "🌦️ আবহাওয়া", text: "এই সপ্তাহের আবহাওয়া আমার প্ল্যানে কোনো ঝুঁকি তৈরি করছে কি?" },
   { label: "💰 দামের তালিকা", text: "সার ও বীজের দামের তালিকা দিন।" },
   { label: "🐛 পোকা-রোগ", text: "আমার ফসলে কোন পোকা বা রোগের ঝুঁকি আছে?" },
-  { label: "🛒 এখুনি কিনুন", text: "আমার প্ল্যানের দরকারি সার এখন কিনতে চাই। আমার নম্বর 8801875191553।", cls: "buy" },
-  { label: "✅ কনফার্ম করুন", text: "কনফার্ম, পেমেন্ট করে দিন।", cls: "confirm" },
 ];
 const qa = $("quickActions");
-for (const a of QUICK_ACTIONS) {
+
+function makeChip(label, text, custom) {
   const b = document.createElement("button");
-  b.className = "chip" + (a.cls ? " " + a.cls : "");
-  b.textContent = a.label;
-  b.addEventListener("click", () => { if (!$("sendBtn").disabled) send(a.text); });
-  qa.appendChild(b);
+  b.className = "chip" + (custom ? " custom" : "");
+  b.textContent = label;
+  b.title = text;
+  b.addEventListener("click", () => { if (!$("sendBtn").disabled) send(text); });
+  if (custom) {
+    const x = document.createElement("span");
+    x.className = "chip-x"; x.textContent = "✕"; x.title = "Remove shortcut";
+    x.addEventListener("click", (e) => { e.stopPropagation(); removeShortcut(label); });
+    b.appendChild(x);
+  }
+  return b;
 }
+
+function loadShortcuts() {
+  try { return JSON.parse(localStorage.getItem("agrisense_shortcuts") || "[]"); }
+  catch { return []; }
+}
+function saveShortcuts(list) { localStorage.setItem("agrisense_shortcuts", JSON.stringify(list)); }
+
+function addShortcut(label, text) {
+  const list = loadShortcuts();
+  if (list.some((s) => s.label === label)) return;
+  list.push({ label, text });
+  saveShortcuts(list);
+  renderChips();
+  addTrace("status", `⭐ shortcut saved: ${label}`);
+}
+function removeShortcut(label) {
+  saveShortcuts(loadShortcuts().filter((s) => s.label !== label));
+  renderChips();
+}
+
+function renderChips() {
+  qa.innerHTML = "";
+  for (const a of QUICK_ACTIONS) qa.appendChild(makeChip(a.label, a.text, false));
+  for (const s of loadShortcuts()) qa.appendChild(makeChip("⭐ " + s.label, s.text, true));
+  const add = document.createElement("button");
+  add.className = "chip add"; add.textContent = "＋ শর্টকাট";
+  add.title = "Create your own shortcut button";
+  add.addEventListener("click", () => {
+    const label = prompt("Shortcut button name (e.g. আজকের আবহাওয়া):");
+    if (!label) return;
+    const text = prompt("Message it should send:", "");
+    if (text) addShortcut(label.trim(), text.trim());
+  });
+  qa.appendChild(add);
+}
+renderChips();
 
 // ---- Draggable divider between chat and trace ----
 (function () {
