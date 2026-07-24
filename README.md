@@ -49,7 +49,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | 7 | Knowledge base with RAG | ChromaDB over `backend/data/kb/` (BARC FRG, DAE/BRRI-derived docs) |
 | 8 | Visible agent trace | Right-hand panel streams every tool call: name, params, raw result, latency |
 
-**Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (deterministic dated splits from `generate_season_plan`, doses from KB).
+**Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (deterministic dated splits from `generate_season_plan`, doses from KB) · **pest/disease risk** (`assess_pest_risk` — weather+stage → risk level, treatment, per-acre cost) · **proactive weather alerts** (`check_weather_alerts` + a UI banner that polls `/api/alerts` with no chat turn: heavy rain near a urea/sowing date → delay it, rain near an irrigation date → skip it).
 **Livestock (beyond crops):** animals get full parity — `compute_livestock_financials` (broiler/layer/goat/beef/dairy: cost, revenue, net, ROI, break-even per cycle) and `generate_livestock_plan` (dated procurement→vaccination→sale calendar), grounded in a DLS/BLRI livestock KB doc.
 **Tier 2:** bdapps CaaS payment — complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) implemented against the official API spec; real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
 
