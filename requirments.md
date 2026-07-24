@@ -39,8 +39,8 @@ Source reviewed: `Agentic_AI_Hackathon_Final_Question.pdf` (Final Round problem 
 
 | Status | Requirement from brief | Current evidence | Improvement / acceptance check |
 |---|---|---|---|
-| [ ] | Supplier marketplace comparison by price, delivery time, distance and rating. | No supplier catalog or comparison tool found. | Low priority until Tier 0 is demo-verified; a small seeded catalog is sufficient. |
-| [~] | Market-price intelligence with current/historical prices and sell/store/wait advice. | Seeded current market price catalog and retrieval tool exist; no historical series or decision logic. | Add a clearly labeled historical dataset plus deterministic sell/store/wait criteria. |
+| [x] | Supplier marketplace comparison by price, delivery time, distance and rating. | `compare_suppliers` (suppliers.py + suppliers.json) ranks a seeded 6-dealer catalog by price/delivery/distance/rating. 4 tests. Brief explicitly accepts a seeded catalog. | Done. |
+| [x] | Market-price intelligence with current/historical prices and sell/store/wait advice. | `market_price_intelligence` (market_intel.py + price_seasonality.json) returns current price, a modeled 12-month seasonal history, and a deterministic sell-now/store/wait recommendation using storage cost + spoilage. 6 tests. History is seeded/modeled and labeled; current price swaps to real DAM when that doc lands. | Done — labeled seeded/modeled. |
 | [ ] | Leaf-image disease detection. | No upload endpoint or vision classifier found. | Low priority; add only after core reliability work. |
 | [~] | bdapps CaaS checkout: complete request/response, balance deduction and receipt flow. | `backend/app/tools/bdapps.py` implements balance → debit → SMS, with a labeled schema-compatible simulation and credentials-based live mode. | **High priority for points:** test with sandbox credentials and document actual result; expose OTP registration in the tool registry/UI if number masking is required. |
 | [x] | Bengali or voice interaction. | Bengali input/output is supported by prompt and UI copy. | Verify Bengali responses remain grounded; voice is not implemented, but is optional. |
