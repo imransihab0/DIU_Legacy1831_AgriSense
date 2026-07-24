@@ -1,7 +1,6 @@
 fastapi
 uvicorn[standard]
 openai>=1.50
-anthropic>=0.40
 chromadb>=0.5
 httpx
 python-dotenv

@@ -17,7 +17,7 @@ uvicorn app.main:app --reload --port 8000
 
 Open **http://localhost:8000** — chat on the left, live agent trace on the right.
 
-LLM provider is toggled in `.env`: `LLM_PROVIDER=openai` (primary, `gpt-5.1`) or `anthropic` (fallback, `claude-sonnet-4-6`). Both use the identical tool set.
+The agent LLM is OpenAI `gpt-5.1` (model switchable live from the UI); set `OPENAI_API_KEY` in `.env`.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
               │ ndjson stream
         FastAPI backend
               │
-        Agent loop (OpenAI / Anthropic tool-calling, ≤10 steps/turn)
+        Agent loop (OpenAI tool-calling, ≤10 steps/turn)
    ┌──────────┼─────────────┬──────────────┬─────────────┬────────────┐
  geocode  get_weather   search_kb      compute_     get_market_   bdapps_
  (live)   (live,        (RAG over      financials   prices        checkout
@@ -58,7 +58,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | Component | Status |
 |---|---|
 | Weather + geocoding (Open-Meteo) | **REAL** — live API calls, visible in trace |
-| LLM (OpenAI gpt-5.1 / Claude Sonnet 4.6) | **REAL** |
+| LLM (OpenAI gpt-5.1) | **REAL** |
 | Knowledge base content | **REAL public sources** — compiled from BARC Fertilizer Recommendation Guide (FRG-2018), DAE/BRRI crop calendars & IPM bulletins, SRDI soil guides (see `backend/data/kb/`, each file cites its source) |
 | RAG retrieval (ChromaDB) | **REAL** — actual vector search, chunks + sources visible in trace |
 | Financial math | **REAL computation** — deterministic Python; baseline per-acre costs/yields are **seeded reference data** compiled from public extension sources (`backend/data/crops.json`) |
@@ -74,7 +74,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 
 ## Tools & APIs used
 
-- **OpenAI API** (`gpt-5.1`) — primary agent LLM · **Anthropic API** (`claude-sonnet-4-6`) — fallback
+- **OpenAI API** (`gpt-5.1`) — the agent LLM (model switchable live from the UI)
 - **Open-Meteo** forecast + geocoding — free, live, no key
 - **ChromaDB** (embedded) — vector store for RAG
 - **FastAPI + Uvicorn** — backend; **SQLite** — memory; vanilla JS — frontend

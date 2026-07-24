@@ -1,4 +1,4 @@
-"""Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
+"""Tool registry: OpenAI tool JSON schemas and the dispatcher."""
 import functools
 from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers, soilmap, websearch, awdmap
 from ..rag import store
@@ -275,13 +275,6 @@ TOOL_SPECS = [
 
 def openai_tools() -> list[dict]:
     return [{"type": "function", "function": s} for s in TOOL_SPECS]
-
-
-def anthropic_tools() -> list[dict]:
-    return [
-        {"name": s["name"], "description": s["description"], "input_schema": s["parameters"]}
-        for s in TOOL_SPECS
-    ]
 
 
 def dispatch(session_id: str, name: str, args: dict):

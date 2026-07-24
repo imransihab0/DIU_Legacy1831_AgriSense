@@ -14,7 +14,6 @@ fetch("/api/health").then(r => r.json()).then(h => {
 fetch("/api/model").then(r => r.json()).then(m => {
   const sel = $("modelSelect");
   const groups = [["OpenAI", m.openai_models]];
-  if (m.anthropic_key_set) groups.push(["Anthropic", m.anthropic_models]);
   for (const [name, models] of groups) {
     const og = document.createElement("optgroup");
     og.label = name;

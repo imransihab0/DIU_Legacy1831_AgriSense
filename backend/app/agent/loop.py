@@ -3,7 +3,7 @@
 Yields ndjson-able events as the agent works so the UI can render a live
 trace (Tier 0 #8): every tool call, its parameters, and the raw result.
 
-Provider toggle: OpenAI (primary) or Anthropic (fallback) via LLM_PROVIDER.
+LLM: OpenAI tool-calling, model switchable live from the UI.
 """
 import json
 import time
@@ -18,12 +18,9 @@ def run_agent(session_id: str, user_message: str):
     system = build_system_prompt(profile)
     history = db.get_history(session_id, limit=30)
 
-    yield {"type": "status", "text": f"Agent started ({state.provider()} · {state.current_model()})"}
+    yield {"type": "status", "text": f"Agent started (openai · {state.current_model()})"}
 
-    if state.provider() == "anthropic":
-        gen = _run_anthropic(session_id, system, history)
-    else:
-        gen = _run_openai(session_id, system, history)
+    gen = _run_openai(session_id, system, history)
 
     final = None
     for event in gen:
@@ -89,48 +86,5 @@ def _run_openai(session_id, system, history):
                     "content": json.dumps(result, ensure_ascii=False),
                 }
             )
-
-    yield {"type": "final", "content": "I hit my step limit for this turn — ask me to continue."}
-
-
-# ---------------- Anthropic (fallback) ----------------
-
-def _run_anthropic(session_id, system, history):
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
-    messages = list(history)
-
-    for _ in range(config.MAX_AGENT_ITERATIONS):
-        resp = client.messages.create(
-            model=state.current_model(),
-            max_tokens=8000,
-            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
-            thinking={"type": "adaptive"},
-            tools=T.anthropic_tools(),
-            messages=messages,
-        )
-
-        if resp.stop_reason != "tool_use":
-            text = next((b.text for b in resp.content if b.type == "text"), "")
-            yield {"type": "final", "content": text}
-            return
-
-        messages.append({"role": "assistant", "content": resp.content})
-        results = []
-        for block in resp.content:
-            if block.type != "tool_use":
-                continue
-            yield {"type": "tool_call", "tool": block.name, "params": block.input}
-            result, ms = _timed_dispatch(session_id, block.name, block.input)
-            yield {"type": "tool_result", "tool": block.name, "ms": ms, "result": result}
-            results.append(
-                {
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": json.dumps(result, ensure_ascii=False),
-                }
-            )
-        messages.append({"role": "user", "content": results})
 
     yield {"type": "final", "content": "I hit my step limit for this turn — ask me to continue."}
