@@ -169,6 +169,17 @@ TOOL_SPECS = [
         },
     },
     {
+        "name": "clear_farm_data",
+        "description": "Permanently delete ALL of this farmer's saved data for the session — farm profile, saved season plan, and chat history (a 'forget me' / right-to-be-forgotten action). DESTRUCTIVE and irreversible. NEVER call with confirmed=true until the farmer has EXPLICITLY confirmed deletion in their most recent message. Call with confirmed=false first if you're unsure; it will tell you to confirm.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "confirmed": {"type": "boolean", "description": "true ONLY after the farmer explicitly confirmed they want everything deleted"},
+            },
+            "required": ["confirmed"],
+        },
+    },
+    {
         "name": "save_farm_profile",
         "description": "Persist farm profile fields to memory (survives across sessions). Call as soon as the farmer reveals any field.",
         "parameters": {
@@ -259,6 +270,11 @@ def dispatch(session_id: str, name: str, args: dict):
             return pest.assess_pest_risk(**args)
         if name == "check_weather_alerts":
             return alerts.check_weather_alerts(session_id)
+        if name == "clear_farm_data":
+            if args.get("confirmed") is True:
+                db.reset_session(session_id)
+                return {"status": "cleared", "message": "All saved farm profile, season plan and chat history for this session have been permanently deleted."}
+            return {"status": "confirmation_required", "message": "Do NOT clear yet — ask the farmer to explicitly confirm deletion first, then call again with confirmed=true."}
         if name == "market_price_intelligence":
             return market_intel.market_price_intelligence(**args)
         if name == "compare_suppliers":
