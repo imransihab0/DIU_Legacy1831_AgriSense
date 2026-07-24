@@ -77,7 +77,7 @@ def query_balance(subscriber_number: str) -> dict:
     request_payload = {
         "applicationId": BDAPPS_APP_ID or "APP_999999",
         "password": BDAPPS_PASSWORD or "***sandbox***",
-        "subscriberId": _tel(subscriber_number),
+        "subscriberId": _subscriber_id(subscriber_number),
         "paymentInstrumentName": "MobileAccount",
         "currency": "BDT",
     }
@@ -113,7 +113,7 @@ def direct_debit(subscriber_number: str, amount_bdt: float) -> dict:
         "applicationId": BDAPPS_APP_ID or "APP_999999",
         "password": BDAPPS_PASSWORD or "***sandbox***",
         "externalTrxId": f"AGRI{int(time.time() * 1000)}{random.randint(100, 999)}",
-        "subscriberId": _tel(subscriber_number),
+        "subscriberId": _subscriber_id(subscriber_number),
         "paymentInstrumentName": "MobileAccount",
         "amount": f"{amount:.2f}",
         "currency": "BDT",
@@ -152,7 +152,7 @@ def list_payment_instruments(subscriber_number: str) -> dict:
     request_payload = {
         "applicationId": BDAPPS_APP_ID or "APP_999999",
         "password": BDAPPS_PASSWORD or "***sandbox***",
-        "subscriberId": _tel(subscriber_number),
+        "subscriberId": _subscriber_id(subscriber_number),
         "type": "all",
     }
     if _live():
@@ -179,7 +179,7 @@ def send_sms(subscriber_number: str, message: str) -> dict:
         "applicationId": BDAPPS_APP_ID or "APP_999999",
         "password": BDAPPS_PASSWORD or "***sandbox***",
         "message": message,
-        "destinationAddresses": [_tel(subscriber_number)],
+        "destinationAddresses": [_subscriber_id(subscriber_number)],
     }
     if _has_bengali(message):
         request_payload["encoding"] = "16"  # Bengali encoding per API guide
@@ -200,14 +200,99 @@ def send_sms(subscriber_number: str, message: str) -> dict:
     }
 
 
+# ---------------- OTP registration (required when number masking is on) ----------------
+# Masked apps reject raw MSISDNs (E1951). Official flow: otp/request sends a
+# code to the phone; otp/verify returns a MASKED subscriberId that all
+# subsequent CaaS/SMS calls must use. We persist the mapping in-process.
+
+import json as _json
+from ..config import DATA_DIR as _DATA_DIR
+
+_MASKED_IDS_FILE = _DATA_DIR / "masked_ids.json"
+try:
+    _MASKED_IDS: dict[str, str] = _json.loads(_MASKED_IDS_FILE.read_text())
+except Exception:
+    _MASKED_IDS = {}  # raw number -> masked subscriberId
+
+
+def _save_masked_ids():
+    _MASKED_IDS_FILE.write_text(_json.dumps(_MASKED_IDS, indent=1))
+
+
+def otp_request(subscriber_number: str) -> dict:
+    request_payload = {
+        "applicationId": BDAPPS_APP_ID or "APP_999999",
+        "password": BDAPPS_PASSWORD or "***sandbox***",
+        "subscriberId": _tel(subscriber_number),
+        "applicationMetaData": {
+            "client": "WEBAPP", "device": "AgriSense demo", "os": "web", "appCode": "AgriSenseAI",
+        },
+    }
+    if _live():
+        response_payload = _post("/subscription/otp/request", request_payload)
+    else:
+        response_payload = {
+            "statusCode": "S1000", "statusDetail": "Success",
+            "referenceNo": "SIMREF123456789", "version": "1.0",
+        }
+    return {
+        "mode": _mode(),
+        "endpoint": "POST /subscription/otp/request",
+        "request": _redact(request_payload),
+        "response": response_payload,
+    }
+
+
+def otp_verify(subscriber_number: str, reference_no: str, otp: str) -> dict:
+    request_payload = {
+        "applicationId": BDAPPS_APP_ID or "APP_999999",
+        "password": BDAPPS_PASSWORD or "***sandbox***",
+        "referenceNo": reference_no,
+        "otp": otp,
+    }
+    if _live():
+        response_payload = _post("/subscription/otp/verify", request_payload)
+    else:
+        response_payload = {
+            "statusCode": "S1000", "statusDetail": "Success",
+            "subscriptionStatus": "REGISTERED",
+            "subscriberId": "tel:MASKED_SIM_0000001", "version": "1.0",
+        }
+    masked = response_payload.get("subscriberId")
+    if response_payload.get("statusCode") == "S1000" and masked:
+        _MASKED_IDS[subscriber_number.strip()] = masked
+        _save_masked_ids()
+    return {
+        "mode": _mode(),
+        "endpoint": "POST /subscription/otp/verify",
+        "request": _redact(request_payload),
+        "response": response_payload,
+        "note": "masked subscriberId stored; subsequent charges use it automatically" if masked else None,
+    }
+
+
+def _subscriber_id(subscriber_number: str) -> str:
+    """Use the masked ID if we have one (masked apps), else tel: format."""
+    return _MASKED_IDS.get(subscriber_number.strip()) or _tel(subscriber_number)
+
+
 # ---------------- Full checkout flow ----------------
 
 def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str) -> dict:
     """Complete CaaS checkout: balance query -> direct debit -> SMS receipt."""
     amount = round(float(amount_bdt), 2)
-    steps = [list_payment_instruments(subscriber_number)]
+    steps = []
+
+    # On the live gateway, list/pi and balance/query may not be deployed
+    # (404) — include them when available, skip gracefully when not.
+    pi_step = list_payment_instruments(subscriber_number)
+    if str(pi_step["response"].get("statusCode", "")).startswith("HTTP_4"):
+        pi_step["response"] = {"note": "endpoint not deployed on live gateway - skipped"}
+    steps.append(pi_step)
 
     balance_step = query_balance(subscriber_number)
+    if str(balance_step["response"].get("statusCode", "")).startswith("HTTP_4"):
+        balance_step["response"] = {"note": "endpoint not deployed on live gateway - skipped"}
     steps.append(balance_step)
     try:
         available = float(balance_step["response"].get("chargeableBalance", 0))
