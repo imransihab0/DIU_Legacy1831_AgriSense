@@ -61,7 +61,8 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | Knowledge base content | **REAL public sources** — compiled from BARC Fertilizer Recommendation Guide (FRG-2018), DAE/BRRI crop calendars & IPM bulletins, SRDI soil guides (see `backend/data/kb/`, each file cites its source) |
 | RAG retrieval (ChromaDB) | **REAL** — actual vector search, chunks + sources visible in trace |
 | Financial math | **REAL computation** — deterministic Python; baseline per-acre costs/yields are **seeded reference data** compiled from public extension sources (`backend/data/crops.json`) |
-| Market prices | **MOCK/SEEDED** — labeled catalog (`backend/data/market_prices.json`), indicative of DAM reports |
+| Market (crop output) prices | **MOCK/SEEDED** — labeled catalog (`backend/data/market_prices.json`), indicative of DAM reports |
+| Farm input prices (fertilizer/seed/pesticide) | **SEEDED reference** — labeled catalog (`backend/data/input_prices.json`), indicative of BADC/DAE dealer rates; powers the input cart + checkout |
 | bdapps CaaS payment | **Dual mode** — with `BDAPPS_APP_ID`/`BDAPPS_PASSWORD` set: **REAL sandbox HTTP calls** to `developer.bdapps.com` (`/caas/get/balance`, `/caas/direct/debit`, `/sms/send`); without: **labeled simulation** with byte-identical request/response schemas. Full flow (balance → debit → SMS receipt) visible in trace either way |
 | Farm memory (SQLite) | **REAL** — persists across sessions |
 

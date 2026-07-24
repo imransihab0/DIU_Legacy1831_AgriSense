@@ -41,10 +41,22 @@ TOOL_SPECS = [
     },
     {
         "name": "get_market_prices",
-        "description": "Farm-gate & retail prices (BDT/kg) from the seeded price catalog (labeled MOCK). Optionally filter by crop.",
+        "description": "Crop OUTPUT prices — what the farmer SELLS (paddy, potato, mustard seed as a commodity...), BDT/kg, seeded catalog. Use for revenue/sell-side questions. Optionally filter by crop.",
         "parameters": {
             "type": "object",
             "properties": {"crop": {"type": "string", "description": "e.g. 'potato' (optional)"}},
+            "required": [],
+        },
+    },
+    {
+        "name": "get_input_prices",
+        "description": "Farm INPUT prices — what the farmer BUYS: fertilizers (urea, TSP, MoP, gypsum, zinc, boron), seeds (mustard, wheat, boro rice, lentil, potato...), and pesticides. BDT per bag/kg from a seeded reference catalog. ALWAYS call this when the farmer asks about product prices, a price list, what to buy, or wants to purchase inputs — never state input prices from memory.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "optional: 'fertilizers', 'seeds', or 'pesticides'"},
+                "item": {"type": "string", "description": "optional single item, e.g. 'urea' or 'mustard'"},
+            },
             "required": [],
         },
     },
@@ -143,6 +155,8 @@ def dispatch(session_id: str, name: str, args: dict):
             return store.search_knowledge_base(**args)
         if name == "get_market_prices":
             return market.get_market_prices(**args)
+        if name == "get_input_prices":
+            return market.get_input_prices(**args)
         if name == "compute_financials":
             return finance.compute_financials(**args)
         if name == "save_farm_profile":

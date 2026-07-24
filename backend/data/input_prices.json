@@ -1,0 +1,32 @@
+{
+  "_note": "Seeded reference catalog of farm INPUT prices (fertilizers, seeds, common pesticides) indicative of Bangladesh subsidized/retail rates 2024-25, compiled from BADC and DAE dealer price lists. Prices in BDT. Used so the agent can build a costed input cart and run bdapps checkout; clearly labeled seeded reference, not a live feed.",
+  "currency": "BDT",
+  "fertilizers": {
+    "urea":            {"name": "Urea", "unit": "50kg bag", "price": 1100, "per_kg": 22},
+    "tsp":             {"name": "TSP (Triple Super Phosphate)", "unit": "50kg bag", "price": 1100, "per_kg": 22},
+    "mop":             {"name": "MoP (Muriate of Potash)", "unit": "50kg bag", "price": 750, "per_kg": 15},
+    "dap":             {"name": "DAP", "unit": "50kg bag", "price": 1050, "per_kg": 21},
+    "gypsum":          {"name": "Gypsum (Sulphur)", "unit": "50kg bag", "price": 600, "per_kg": 12},
+    "zinc_sulphate":   {"name": "Zinc Sulphate", "unit": "1kg pack", "price": 250, "per_kg": 250},
+    "boron":           {"name": "Boron", "unit": "1kg pack", "price": 400, "per_kg": 400},
+    "cowdung":         {"name": "Decomposed cowdung", "unit": "per ton", "price": 3000, "per_kg": 3}
+  },
+  "seeds": {
+    "mustard":   {"name": "Mustard seed (BARI Sarisha)", "unit": "per kg", "price": 150},
+    "wheat":     {"name": "Wheat seed (HYV)", "unit": "per kg", "price": 55},
+    "boro_rice": {"name": "Boro rice seed (HYV, BRRI dhan)", "unit": "per kg", "price": 90},
+    "aman_rice": {"name": "Aman rice seed (HYV)", "unit": "per kg", "price": 70},
+    "lentil":    {"name": "Lentil seed (Masur)", "unit": "per kg", "price": 140},
+    "potato":    {"name": "Potato seed tuber", "unit": "per kg", "price": 65},
+    "maize":     {"name": "Maize seed (hybrid)", "unit": "per kg", "price": 450},
+    "onion":     {"name": "Onion seed", "unit": "per kg", "price": 2400},
+    "jute":      {"name": "Jute seed", "unit": "per kg", "price": 160},
+    "tomato":    {"name": "Tomato seed (hybrid)", "unit": "per 10g", "price": 350}
+  },
+  "pesticides": {
+    "mancozeb":         {"name": "Mancozeb (fungicide)", "unit": "1kg pack", "price": 650},
+    "cartap":           {"name": "Cartap (stem borer)", "unit": "1kg pack", "price": 900},
+    "imidacloprid":     {"name": "Imidacloprid (aphid/thrips)", "unit": "100ml", "price": 350},
+    "pheromone_trap":   {"name": "Pheromone trap set", "unit": "per set", "price": 120}
+  }
+}

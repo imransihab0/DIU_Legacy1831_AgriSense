@@ -7,17 +7,33 @@ from pypdf import PdfReader
 from ..config import KB_DIR
 from .store import get_collection
 
-CHUNK_SIZE = 900
+CHUNK_SIZE = 1200
 OVERLAP = 150
 
 
-def _chunk(text: str) -> list[str]:
+def _split_long(text: str) -> list[str]:
     text = " ".join(text.split())
-    chunks, i = [], 0
+    if len(text) <= CHUNK_SIZE:
+        return [text] if len(text) > 40 else []
+    out, i = [], 0
     while i < len(text):
-        chunks.append(text[i : i + CHUNK_SIZE])
+        out.append(text[i : i + CHUNK_SIZE])
         i += CHUNK_SIZE - OVERLAP
-    return [c for c in chunks if len(c) > 80]
+    return out
+
+
+def _chunk(text: str, markdown: bool) -> list[str]:
+    """For markdown, keep each '##' section (one crop) intact as a chunk so
+    a crop's full fertilizer dose + timing stays together; oversized sections
+    are further split. For non-markdown, fall back to sliding window."""
+    if not markdown or "## " not in text:
+        return _split_long(text)
+    parts = text.split("\n## ")
+    chunks = []
+    for j, part in enumerate(parts):
+        section = part if j == 0 else "## " + part
+        chunks.extend(_split_long(section))
+    return chunks
 
 
 def _read(path) -> str:
@@ -35,7 +51,8 @@ def main():
     for path in sorted(KB_DIR.iterdir()):
         if path.suffix.lower() not in (".md", ".txt", ".pdf"):
             continue
-        for j, chunk in enumerate(_chunk(_read(path))):
+        is_md = path.suffix.lower() in (".md", ".txt")
+        for j, chunk in enumerate(_chunk(_read(path), is_md)):
             docs.append(chunk)
             metas.append({"source": path.name, "chunk": j})
             ids.append(f"{path.name}-{j}")

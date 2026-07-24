@@ -26,7 +26,7 @@ import httpx
 from ..config import BDAPPS_APP_ID, BDAPPS_PASSWORD, BDAPPS_BASE_URL
 
 _SIM_BALANCES: dict[str, float] = {}
-_SIM_START_BALANCE = 5000.0
+_SIM_START_BALANCE = 15000.0
 
 # Current TAP doc says /caas/get/balance; the 2019 API guide says
 # /caas/balance/query. Try current first, fall back on 404/E1312.
@@ -281,6 +281,12 @@ def _subscriber_id(subscriber_number: str) -> str:
 def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str) -> dict:
     """Complete CaaS checkout: balance query -> direct debit -> SMS receipt."""
     amount = round(float(amount_bdt), 2)
+    if amount <= 0:
+        return {
+            "error": "amount_bdt must be greater than 0. First build the itemized cart "
+            "(call get_input_prices, multiply by quantities needed) to get the real total, "
+            "then call bdapps_checkout with that total.",
+        }
     steps = []
 
     # On the live gateway, list/pi and balance/query may not be deployed
