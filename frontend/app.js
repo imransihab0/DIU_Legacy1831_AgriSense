@@ -323,7 +323,8 @@ function addShortcut(label, text) {
   addTrace("status", `⭐ shortcut saved: ${label}`);
 }
 function removeShortcut(label) {
-  saveShortcuts(loadShortcuts().filter((s) => s.label !== label));
+  const raw = label.replace(/^⭐\s*/, "").trim();  // chip shows "⭐ <label>"; stored label has no star
+  saveShortcuts(loadShortcuts().filter((s) => s.label !== raw));
   renderChips();
 }
 
