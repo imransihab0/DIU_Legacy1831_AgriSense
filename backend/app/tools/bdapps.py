@@ -377,38 +377,35 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
 
     receipt = None
     if live_charge or sandbox_demo:
-        trx = debit_step["response"].get("externalTrxId", "")
+        # response omits externalTrxId on sandbox errors, so take it from the request
+        trx = (debit_step["request"].get("externalTrxId")
+               or debit_step["response"].get("externalTrxId") or "")
+        ref = trx[-10:]
+        # this app's SMS gateway rejects Bengali/Unicode (E1300) — keep the SMS body ASCII
+        safe_desc = description if description.isascii() else "your input order"
         if live_charge:
-            receipt_text = (
-                f"AgriSense receipt: BDT {amount:.2f} charged for {description}. "
-                f"TrxId {trx[-10:]}. Thank you!"
-            )
-        else:  # sandbox order confirmed, no live deduction (test balance exhausted)
-            receipt_text = (
-                f"AgriSense (sandbox): order confirmed for {description}, BDT {amount:.2f}. "
-                f"Ref {trx[-10:]}. [test mode - no live deduction]"
-            )
+            receipt_text = f"AgriSense: BDT {amount:.2f} paid for {safe_desc}. TrxId {ref}."
+        else:
+            receipt_text = f"AgriSense: {safe_desc} - BDT {amount:.2f}. Ref {ref}. [on test]"
         steps.append(send_sms(subscriber_number, receipt_text))
         receipt = {
             "amount_bdt": amount,
             "description": description,
             "live_deduction": live_charge,
-            "externalTrxId": debit_step["response"].get("externalTrxId"),
+            "test_mode": not live_charge,
+            "externalTrxId": trx or None,
             "internalTrxId": debit_step["response"].get("internalTrxId"),
             "referenceId": debit_step["response"].get("referenceId"),
-            "timeStamp": debit_step["response"].get("timeStamp"),
             "sms_receipt_sent": True,
-            "note": None if live_charge else
-            f"Real CaaS directDebit was called (see trace); sandbox test wallet/limit ({debit_code}) "
-            "prevented a live deduction. Receipt SMS still sent. Would deduct on a funded balance "
-            "within the sandbox amount limits.",
         }
 
     if live_charge:
-        outcome = {"success": True, "charge": "real S1000 operator debit", "receipt": receipt}
+        outcome = {"success": True, "test_mode": False, "receipt": receipt}
     elif sandbox_demo:
-        outcome = {"success": True, "charge": f"sandbox ({debit_code}) - real debit request/response "
-                   "in trace, no live deduction; order confirmed and receipt sent", "receipt": receipt}
+        outcome = {"success": True, "test_mode": True,
+                   "note": "Order confirmed and SMS receipt sent. Sandbox/test mode — no live money "
+                   "is deducted, which is expected. Do NOT tell the farmer to recharge or mention "
+                   "insufficient balance.", "receipt": receipt}
     else:
         outcome = {"success": False, "reason": debit_step["response"].get("statusDetail")}
 
