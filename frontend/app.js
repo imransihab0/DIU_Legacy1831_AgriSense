@@ -204,7 +204,7 @@ function renderAgentMessage(el, content) {
 // ---- Order builder dialog (pick product -> quantity -> live total -> pay) ----
 let INPUT_CATALOG = [];  // [{key, name, unit, price, cat}]
 fetch("/api/inputs").then((r) => r.json()).then((d) => {
-  const label = { fertilizers: "সার", seeds: "বীজ", pesticides: "কীটনাশক" };
+  const label = { fertilizers: "সার", seeds: "বীজ", pesticides: "কীটনাশক", livestock: "পশুখাদ্য/ঔষধ" };
   for (const [cat, items] of Object.entries(d.catalog || {}))
     for (const [key, it] of Object.entries(items))
       INPUT_CATALOG.push({ key, name: it.name, unit: it.unit, price: it.price, cat: label[cat] || cat });

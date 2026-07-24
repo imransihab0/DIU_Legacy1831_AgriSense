@@ -28,5 +28,15 @@
     "cartap":           {"name": "Cartap (stem borer)", "unit": "1kg pack", "price": 900},
     "imidacloprid":     {"name": "Imidacloprid (aphid/thrips)", "unit": "100ml", "price": 350},
     "pheromone_trap":   {"name": "Pheromone trap set", "unit": "per set", "price": 120}
+  },
+  "livestock": {
+    "cattle_feed":    {"name": "Cattle concentrate feed (dana)", "unit": "25kg bag", "price": 1150, "per_kg": 46},
+    "broiler_feed":   {"name": "Broiler feed", "unit": "50kg bag", "price": 3500, "per_kg": 70},
+    "layer_feed":     {"name": "Layer feed", "unit": "50kg bag", "price": 3200, "per_kg": 64},
+    "rice_bran":      {"name": "Rice bran (kura)", "unit": "per kg", "price": 25},
+    "fmd_vaccine":    {"name": "FMD vaccine", "unit": "per dose", "price": 60},
+    "ppr_vaccine":    {"name": "PPR vaccine (goat)", "unit": "per dose", "price": 15},
+    "dewormer":       {"name": "Dewormer (per animal)", "unit": "per dose", "price": 25},
+    "mineral_premix": {"name": "Mineral/vitamin premix", "unit": "1kg pack", "price": 120}
   }
 }

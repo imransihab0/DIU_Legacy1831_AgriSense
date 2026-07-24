@@ -62,12 +62,12 @@ TOOL_SPECS = [
     },
     {
         "name": "get_input_prices",
-        "description": "Farm INPUT prices — what the farmer BUYS: fertilizers (urea, TSP, MoP, gypsum, zinc, boron), seeds (mustard, wheat, boro rice, lentil, potato...), and pesticides. BDT per bag/kg from a seeded reference catalog. ALWAYS call this when the farmer asks about product prices, a price list, what to buy, or wants to purchase inputs — never state input prices from memory.",
+        "description": "Farm INPUT prices — what the farmer BUYS: fertilizers (urea, TSP, MoP...), seeds (mustard, wheat, potato...), pesticides, AND livestock inputs (cattle/broiler/layer feed, rice bran, FMD/PPR vaccine, dewormer, mineral premix). BDT per bag/kg/dose from a seeded reference catalog. ALWAYS call this when the farmer asks about any input/product price, a price list, what to buy, or wants to purchase inputs — including animal feed/medicine — never state input prices from memory.",
         "parameters": {
             "type": "object",
             "properties": {
-                "category": {"type": "string", "description": "optional: 'fertilizers', 'seeds', or 'pesticides'"},
-                "item": {"type": "string", "description": "optional single item, e.g. 'urea' or 'mustard'"},
+                "category": {"type": "string", "description": "optional: 'fertilizers', 'seeds', 'pesticides', or 'livestock'"},
+                "item": {"type": "string", "description": "optional single item, e.g. 'urea', 'mustard', or 'cattle_feed'"},
             },
             "required": [],
         },

@@ -36,7 +36,8 @@ def get_market_prices(crop: str | None = None) -> dict:
 
 def get_input_prices(category: str | None = None, item: str | None = None) -> dict:
     data = json.loads((DATA_DIR / "input_prices.json").read_text())
-    cats = {"fertilizers": data["fertilizers"], "seeds": data["seeds"], "pesticides": data["pesticides"]}
+    cats = {"fertilizers": data["fertilizers"], "seeds": data["seeds"],
+            "pesticides": data["pesticides"], "livestock": data.get("livestock", {})}
     if category:
         c = category.lower().strip()
         cats = {c: cats[c]} if c in cats else cats
