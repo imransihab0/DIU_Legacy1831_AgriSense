@@ -50,7 +50,7 @@ def compute_livestock_financials(
     if key not in _ANIMALS:
         return {"error": f"Unknown animal '{animal}'. Valid keys: {list(_ANIMALS)}"}
     a = _ANIMALS[key]
-    n = float(count) if count else a["typical_count"]
+    n = float(count) if (count and float(count) > 0) else a["typical_count"]
     mort = a["mortality_pct"] if mortality_pct is None else float(mortality_pct)
     survivors = n * (1 - mort / 100)
 

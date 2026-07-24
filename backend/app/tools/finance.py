@@ -35,8 +35,11 @@ def compute_financials(
     key = crop.lower().strip().replace(" ", "_")
     if key not in _CROPS:
         return {"error": f"Unknown crop '{crop}'. Valid keys: {list(_CROPS)}"}
-    c = _CROPS[key]
     area = float(area_acres)
+    if area <= 0:
+        return {"error": "area_acres must be greater than 0. Ask the farmer their land size "
+                "(or the portion they'll plant) before computing finances."}
+    c = _CROPS[key]
 
     base_price = price_per_kg if price_per_kg else _PRICES[c["price_key"]]["farm_gate"]
     price = round(base_price * price_factor, 2)

@@ -49,6 +49,8 @@ def set_model(model_id: str) -> dict:
         _state["provider"] = "openai"
         _state["openai_model"] = model_id
     elif model_id in known_anthropic:
+        if not (config.ANTHROPIC_API_KEY and "..." not in config.ANTHROPIC_API_KEY):
+            return {"ok": False, "error": "Anthropic API key not configured — cannot switch to a Claude model."}
         _state["provider"] = "anthropic"
         _state["anthropic_model"] = model_id
     else:

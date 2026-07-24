@@ -80,3 +80,8 @@ def test_price_override():
 def test_unknown_crop_returns_error():
     r = compute_financials("dragonfruit", 1.0)
     assert "error" in r
+
+
+def test_non_positive_area_errors():
+    assert "error" in compute_financials("boro_rice", 0)
+    assert "error" in compute_financials("boro_rice", -5)

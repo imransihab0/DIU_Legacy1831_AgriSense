@@ -81,3 +81,9 @@ def test_plan_dates_ordered_and_start_used():
 
 def test_plan_unknown_animal_errors():
     assert "error" in plan("dragon")
+
+
+def test_non_positive_count_falls_back_to_typical():
+    typical = fin("broiler")["count"]
+    assert fin("broiler", count=0)["count"] == typical
+    assert fin("broiler", count=-3)["count"] == typical
