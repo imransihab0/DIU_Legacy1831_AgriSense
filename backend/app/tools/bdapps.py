@@ -88,6 +88,17 @@ def query_balance(subscriber_number: str) -> dict:
             code = str(response_payload.get("statusCode", ""))
             if not (code.startswith("HTTP_4") or code == "E1312"):
                 break
+        # this gateway doesn't deploy the balance endpoint (404) — return a clean,
+        # honest message instead of a raw 404 HTML page
+        code = str(response_payload.get("statusCode", ""))
+        if code.startswith("HTTP_4") or code == "E1312":
+            response_payload = {
+                "statusCode": "BALANCE_UNAVAILABLE",
+                "statusDetail": "Balance lookup is not enabled on the bdapps gateway for this "
+                "app, so the current balance can't be shown here. The charged amount is confirmed "
+                "on the debit SMS receipt after a purchase.",
+                "balance_available": False,
+            }
     else:
         bal = _SIM_BALANCES.get(subscriber_number, _SIM_START_BALANCE)
         response_payload = {
@@ -333,8 +344,9 @@ def bdapps_checkout(subscriber_number: str, amount_bdt: float, description: str)
     steps.append(pi_step)
 
     balance_step = query_balance(subscriber_number)
-    if str(balance_step["response"].get("statusCode", "")).startswith("HTTP_4"):
-        balance_step["response"] = {"note": "endpoint not deployed on live gateway - skipped"}
+    _bcode = str(balance_step["response"].get("statusCode", ""))
+    if _bcode.startswith("HTTP_4") or _bcode == "BALANCE_UNAVAILABLE":
+        balance_step["response"] = {"note": "balance endpoint not available on this gateway - skipped"}
     steps.append(balance_step)
     try:
         # no default -> None when balance is unavailable/skipped, so the check is skipped
