@@ -84,14 +84,25 @@ TOOL_SPECS = [
         },
     },
     {
+        "name": "bdapps_query_balance",
+        "description": "bdapps CaaS queryBalance (POST /caas/get/balance): check a subscriber's mobile-account chargeable balance before charging. Use when the farmer asks their balance or before a large purchase.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "subscriber_number": {"type": "string", "description": "e.g. 8801812345678"},
+            },
+            "required": ["subscriber_number"],
+        },
+    },
+    {
         "name": "bdapps_checkout",
-        "description": "bdapps CaaS payment (SANDBOX simulation of the official bdapps TAP charging API): direct-debit a subscriber's mobile balance for an input purchase. Returns full request/response payloads and receipt.",
+        "description": "bdapps CaaS complete checkout flow (official TAP API shapes): queryBalance -> directDebit (POST /caas/direct/debit) -> SMS receipt (POST /sms/send). Charges the farmer's mobile balance for an input purchase and returns every request/response pair plus the receipt. Only call AFTER the farmer confirms the purchase and gives their mobile number.",
         "parameters": {
             "type": "object",
             "properties": {
                 "subscriber_number": {"type": "string", "description": "e.g. 8801812345678"},
                 "amount_bdt": {"type": "number"},
-                "description": {"type": "string", "description": "what is being purchased"},
+                "description": {"type": "string", "description": "what is being purchased, e.g. '60 kg wheat seed'"},
             },
             "required": ["subscriber_number", "amount_bdt", "description"],
         },
@@ -124,6 +135,8 @@ def dispatch(session_id: str, name: str, args: dict):
             return finance.compute_financials(**args)
         if name == "save_farm_profile":
             return {"saved_profile": db.save_profile(session_id, args)}
+        if name == "bdapps_query_balance":
+            return bdapps.query_balance(**args)
         if name == "bdapps_checkout":
             return bdapps.bdapps_checkout(**args)
         return {"error": f"Unknown tool {name}"}

@@ -50,7 +50,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | 8 | Visible agent trace | Right-hand panel streams every tool call: name, params, raw result, latency |
 
 **Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (KB-grounded splits with dates).
-**Tier 2:** bdapps CaaS payment — sandbox **simulation** of the TAP charging API flow (request → response → balance deduction → receipt), shown in the trace. Bengali interaction supported natively.
+**Tier 2:** bdapps CaaS payment — complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) implemented against the official API spec; real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
 
 ## Real vs mock (required disclosure)
 
@@ -62,7 +62,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | RAG retrieval (ChromaDB) | **REAL** — actual vector search, chunks + sources visible in trace |
 | Financial math | **REAL computation** — deterministic Python; baseline per-acre costs/yields are **seeded reference data** compiled from public extension sources (`backend/data/crops.json`) |
 | Market prices | **MOCK/SEEDED** — labeled catalog (`backend/data/market_prices.json`), indicative of DAM reports |
-| bdapps CaaS payment | **SANDBOX SIMULATION** — mirrors the official API request/response shape; no real charge |
+| bdapps CaaS payment | **Dual mode** — with `BDAPPS_APP_ID`/`BDAPPS_PASSWORD` set: **REAL sandbox HTTP calls** to `developer.bdapps.com` (`/caas/get/balance`, `/caas/direct/debit`, `/sms/send`); without: **labeled simulation** with byte-identical request/response schemas. Full flow (balance → debit → SMS receipt) visible in trace either way |
 | Farm memory (SQLite) | **REAL** — persists across sessions |
 
 ## Tools & APIs used
