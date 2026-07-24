@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import db, config
+from . import db, config, state
 from .agent.loop import run_agent
 
 app = FastAPI(title="AgriSense AI — DIU_Legacy1831")
@@ -48,10 +48,24 @@ def reset(session_id: str):
 def health():
     from .rag.store import get_collection
     return {
-        "provider": config.LLM_PROVIDER,
-        "model": config.OPENAI_MODEL if config.LLM_PROVIDER == "openai" else config.ANTHROPIC_MODEL,
+        "provider": state.provider(),
+        "model": state.current_model(),
         "kb_chunks": get_collection().count(),
     }
+
+
+@app.get("/api/model")
+def get_model():
+    return state.options()
+
+
+class ModelRequest(BaseModel):
+    model: str
+
+
+@app.post("/api/model")
+def set_model(req: ModelRequest):
+    return state.set_model(req.model)
 
 
 FRONTEND = Path(__file__).resolve().parent.parent.parent / "frontend"

@@ -7,8 +7,36 @@ if (!sessionId) {
 }
 
 fetch("/api/health").then(r => r.json()).then(h => {
-  $("health").textContent = `${h.provider} · KB ${h.kb_chunks} chunks`;
+  $("health").textContent = `KB ${h.kb_chunks} chunks`;
 }).catch(() => { $("health").textContent = "backend offline"; });
+
+// Live model switcher
+fetch("/api/model").then(r => r.json()).then(m => {
+  const sel = $("modelSelect");
+  const groups = [["OpenAI", m.openai_models]];
+  if (m.anthropic_key_set) groups.push(["Anthropic", m.anthropic_models]);
+  for (const [name, models] of groups) {
+    const og = document.createElement("optgroup");
+    og.label = name;
+    for (const opt of models) {
+      const o = document.createElement("option");
+      o.value = opt.id;
+      o.textContent = opt.label;
+      if (opt.id === m.current_model) o.selected = true;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  sel.addEventListener("change", async () => {
+    const r = await fetch("/api/model", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: sel.value }),
+    });
+    const res = await r.json();
+    if (res.ok) addTrace("status", `⚙ model switched to ${res.current_model}`);
+  });
+});
 
 function addMessage(role, html) {
   const div = document.createElement("div");

@@ -7,7 +7,7 @@ Provider toggle: OpenAI (primary) or Anthropic (fallback) via LLM_PROVIDER.
 """
 import json
 import time
-from .. import config, db
+from .. import config, db, state
 from . import tools as T
 from .prompts import build_system_prompt
 
@@ -18,9 +18,9 @@ def run_agent(session_id: str, user_message: str):
     system = build_system_prompt(profile)
     history = db.get_history(session_id, limit=30)
 
-    yield {"type": "status", "text": f"Agent started (provider={config.LLM_PROVIDER})"}
+    yield {"type": "status", "text": f"Agent started ({state.provider()} · {state.current_model()})"}
 
-    if config.LLM_PROVIDER == "anthropic":
+    if state.provider() == "anthropic":
         gen = _run_anthropic(session_id, system, history)
     else:
         gen = _run_openai(session_id, system, history)
@@ -48,11 +48,12 @@ def _run_openai(session_id, system, history):
     from openai import OpenAI
 
     client = OpenAI(api_key=config.OPENAI_API_KEY)
+    model = state.current_model()
     messages = [{"role": "system", "content": system}] + history
 
     for _ in range(config.MAX_AGENT_ITERATIONS):
         resp = client.chat.completions.create(
-            model=config.OPENAI_MODEL,
+            model=model,
             messages=messages,
             tools=T.openai_tools(),
         )
@@ -102,7 +103,7 @@ def _run_anthropic(session_id, system, history):
 
     for _ in range(config.MAX_AGENT_ITERATIONS):
         resp = client.messages.create(
-            model=config.ANTHROPIC_MODEL,
+            model=state.current_model(),
             max_tokens=8000,
             system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             thinking={"type": "adaptive"},
