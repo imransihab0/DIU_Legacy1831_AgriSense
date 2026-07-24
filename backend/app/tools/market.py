@@ -11,15 +11,26 @@ from ..config import DATA_DIR
 def get_market_prices(crop: str | None = None) -> dict:
     data = json.loads((DATA_DIR / "market_prices.json").read_text())
     prices = data["prices"]
+    note = None
     if crop:
-        key = crop.lower().strip().replace(" ", "_")
-        if key in prices:
-            prices = {key: prices[key]}
+        q = crop.lower().strip().replace(" ", "_")
+        matches = {
+            k: v for k, v in prices.items()
+            if q == k or q in k or k in q or q.replace("_", " ") in v["crop"].lower()
+        }
+        if matches:
+            prices = matches
+        else:
+            prices = {}
+            note = (f"'{crop}' is not in the seeded price catalog. Tell the farmer this specific "
+                    "crop isn't in our reference prices (suggest checking the local bazar/DAM), then "
+                    "offer cultivation + cost/profit help. Do NOT invent a price.")
     return {
-        "disclaimer": "SEEDED/MOCK crop-OUTPUT price catalog (labeled per rules) — not a live feed.",
+        "disclaimer": "SEEDED/MOCK crop-OUTPUT price catalog (labeled per rules) — not a live feed. Prices are indicative BDT/kg; confirm at the local market.",
         "currency": data["currency"],
         "unit": data["unit"],
         "prices": prices,
+        **({"note": note} if note else {}),
     }
 
 

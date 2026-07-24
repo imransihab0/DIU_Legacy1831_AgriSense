@@ -12,6 +12,16 @@
     "lentil": {"crop": "Lentil (Masur)", "farm_gate": 98, "retail": 135},
     "onion": {"crop": "Onion", "farm_gate": 48, "retail": 70},
     "jute": {"crop": "Jute fibre", "farm_gate": 55, "retail": null},
-    "tomato": {"crop": "Tomato", "farm_gate": 22, "retail": 40}
+    "tomato": {"crop": "Tomato", "farm_gate": 22, "retail": 40},
+    "kochur_loti": {"crop": "Kochur loti (taro stolon)", "farm_gate": 35, "retail": 60},
+    "kochu": {"crop": "Kochu (taro)", "farm_gate": 25, "retail": 45},
+    "begun": {"crop": "Brinjal (begun)", "farm_gate": 25, "retail": 45},
+    "morich": {"crop": "Green chili (kacha morich)", "farm_gate": 60, "retail": 100},
+    "lau": {"crop": "Bottle gourd (lau)", "farm_gate": 15, "retail": 30},
+    "misti_kumra": {"crop": "Sweet pumpkin (misti kumra)", "farm_gate": 18, "retail": 32},
+    "dherosh": {"crop": "Okra (dherosh)", "farm_gate": 30, "retail": 50},
+    "phulkopi": {"crop": "Cauliflower (phulkopi)", "farm_gate": 25, "retail": 45},
+    "badhakopi": {"crop": "Cabbage (badhakopi)", "farm_gate": 18, "retail": 32},
+    "mula": {"crop": "Radish (mula)", "farm_gate": 15, "retail": 28}
   }
 }
