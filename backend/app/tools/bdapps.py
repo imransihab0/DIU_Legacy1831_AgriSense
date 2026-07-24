@@ -131,12 +131,12 @@ def direct_debit(subscriber_number: str, amount_bdt: float) -> dict:
         else:
             _SIM_BALANCES[subscriber_number] = round(bal - amount, 2)
             response_payload = {
-                "externalTrxId": request_payload["externalTrxId"],
-                "internalTrxId": str(random.randint(100, 999)),
-                "referenceId": str(random.randint(10_000_000, 99_999_999)),
-                "timeStamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                 "statusCode": "S1000",
-                "statusDetail": "Success.",
+                "timeStamp": time.strftime("%Y-%m-%dT%H:%M:%S.000%z"),
+                "externalTrxId": request_payload["externalTrxId"],
+                "statusDetail": "Request was successfully processed",
+                "internalTrxId": str(random.randint(10 ** 14, 10 ** 15 - 1)),
+                "referenceId": str(random.randint(10_000_000, 99_999_999)),
             }
     return {
         "mode": _mode(),
@@ -189,6 +189,15 @@ def send_sms(subscriber_number: str, message: str) -> dict:
         response_payload = {
             "version": "1.0",
             "requestId": str(int(time.time() * 1000)),
+            "destinationResponses": [
+                {
+                    "address": _subscriber_id(subscriber_number),
+                    "timeStamp": time.strftime("%Y%m%d%H%M%S"),
+                    "messageId": str(random.randint(10 ** 14, 10 ** 15 - 1)),
+                    "statusCode": "S1000",
+                    "statusDetail": "Success.",
+                }
+            ],
             "statusCode": "S1000",
             "statusDetail": "Success.",
         }
