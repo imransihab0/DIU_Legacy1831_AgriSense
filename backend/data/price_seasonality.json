@@ -1,0 +1,17 @@
+{
+  "_seeded": true,
+  "_note": "SEEDED/MODELED price seasonality (labeled per rules) — NOT a live feed. Per crop: annual base farm-gate price (BDT/kg), the harvest-trough month (prices lowest at glut), seasonal amplitude, and storage economics. The tool models a monthly historical series and a sell/store/wait recommendation from these, following typical Bangladesh DAM seasonal patterns. Current price comes from market_prices.json (swap to a real DAM feed when available).",
+  "currency": "BDT",
+  "unit": "per_kg",
+  "crops": {
+    "rice_paddy": {"base_price": 32, "trough_month": 5, "amplitude": 0.14, "storable": true, "storage_cost_bdt_per_kg_month": 0.4, "spoilage_pct_per_month": 0.8},
+    "wheat":      {"base_price": 35, "trough_month": 4, "amplitude": 0.12, "storable": true, "storage_cost_bdt_per_kg_month": 0.4, "spoilage_pct_per_month": 0.8},
+    "maize":      {"base_price": 29, "trough_month": 5, "amplitude": 0.13, "storable": true, "storage_cost_bdt_per_kg_month": 0.4, "spoilage_pct_per_month": 1.0},
+    "potato":     {"base_price": 18, "trough_month": 2, "amplitude": 0.40, "storable": true, "storage_cost_bdt_per_kg_month": 0.8, "spoilage_pct_per_month": 1.5},
+    "mustard":    {"base_price": 82, "trough_month": 3, "amplitude": 0.12, "storable": true, "storage_cost_bdt_per_kg_month": 0.3, "spoilage_pct_per_month": 0.5},
+    "lentil":     {"base_price": 98, "trough_month": 3, "amplitude": 0.12, "storable": true, "storage_cost_bdt_per_kg_month": 0.3, "spoilage_pct_per_month": 0.6},
+    "onion":      {"base_price": 48, "trough_month": 3, "amplitude": 0.38, "storable": true, "storage_cost_bdt_per_kg_month": 0.6, "spoilage_pct_per_month": 4.0},
+    "jute":       {"base_price": 55, "trough_month": 8, "amplitude": 0.15, "storable": true, "storage_cost_bdt_per_kg_month": 0.4, "spoilage_pct_per_month": 0.7},
+    "tomato":     {"base_price": 22, "trough_month": 1, "amplitude": 0.45, "storable": false, "storage_cost_bdt_per_kg_month": 0.0, "spoilage_pct_per_month": 20.0}
+  }
+}

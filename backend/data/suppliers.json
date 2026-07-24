@@ -1,0 +1,19 @@
+{
+  "_seeded": true,
+  "_note": "SEEDED/MOCK supplier catalog (labeled per rules — the brief explicitly accepts a mock catalog). Input dealers with per-item price (BDT), delivery time, distance and rating. Not a live marketplace.",
+  "currency": "BDT",
+  "suppliers": [
+    {"id": "s1", "name": "Bogura Krishi Bhandar", "location": "Bogura Sadar", "distance_km": 4, "delivery_days": 1, "rating": 4.6,
+     "prices": {"urea": 1080, "tsp": 1120, "mop": 760, "dap": 1050, "gypsum": 600, "zinc_sulphate": 250, "boron": 400, "mancozeb": 640, "cartap": 900, "imidacloprid": 350}},
+    {"id": "s2", "name": "Sonali Agro Dealer", "location": "Shibganj, Bogura", "distance_km": 18, "delivery_days": 2, "rating": 4.3,
+     "prices": {"urea": 1050, "tsp": 1100, "mop": 740, "dap": 1020, "gypsum": 580, "zinc_sulphate": 240, "boron": 390, "mancozeb": 660, "cartap": 880, "imidacloprid": 360}},
+    {"id": "s3", "name": "Modern Seed & Fertilizer", "location": "Sherpur, Bogura", "distance_km": 26, "delivery_days": 3, "rating": 4.8,
+     "prices": {"urea": 1100, "tsp": 1150, "mop": 770, "dap": 1060, "gypsum": 620, "zinc_sulphate": 260, "boron": 410, "mancozeb": 620, "cartap": 920, "imidacloprid": 340}},
+    {"id": "s4", "name": "Farmers Choice Depot", "location": "Bogura Sadar", "distance_km": 6, "delivery_days": 1, "rating": 4.1,
+     "prices": {"urea": 1120, "tsp": 1130, "mop": 780, "dap": 1080, "gypsum": 610, "zinc_sulphate": 255, "boron": 420, "mancozeb": 650, "cartap": 910, "imidacloprid": 355}},
+    {"id": "s5", "name": "BADC Sales Center", "location": "Bogura Sadar", "distance_km": 5, "delivery_days": 2, "rating": 4.4,
+     "prices": {"urea": 1000, "tsp": 1050, "mop": 700, "dap": 980, "gypsum": 560, "zinc_sulphate": 230, "boron": 380, "mancozeb": 680, "cartap": 940, "imidacloprid": 370}},
+    {"id": "s6", "name": "Rural Agri Mart (online)", "location": "delivers from Dhaka", "distance_km": 210, "delivery_days": 4, "rating": 4.0,
+     "prices": {"urea": 1070, "tsp": 1090, "mop": 745, "dap": 1030, "gypsum": 590, "zinc_sulphate": 245, "boron": 395, "mancozeb": 630, "cartap": 890, "imidacloprid": 345}}
+  ]
+}

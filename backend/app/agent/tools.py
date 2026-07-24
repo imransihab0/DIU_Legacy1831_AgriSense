@@ -1,6 +1,6 @@
 """Tool registry: JSON schemas (OpenAI + Anthropic formats) and dispatcher."""
 import functools
-from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts
+from ..tools import weather, market, finance, bdapps, season_plan, livestock, pest, alerts, market_intel, suppliers
 from ..rag import store
 from .. import db
 
@@ -144,6 +144,31 @@ TOOL_SPECS = [
         "parameters": {"type": "object", "properties": {}, "required": []},
     },
     {
+        "name": "market_price_intelligence",
+        "description": "Crop SELL-side market intelligence: current price, a modeled 12-month price history/seasonal range, and a deterministic SELL-NOW / STORE / WAIT recommendation that accounts for the seasonal trend, storage cost and spoilage. Use when the farmer asks whether to sell now or hold, or about price trends. Prices are seeded/labeled.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "crop": {"type": "string", "description": "crop or price key, e.g. potato, boro_rice, onion"},
+                "max_store_months": {"type": "integer", "description": "how many months the farmer could store; default 6"},
+            },
+            "required": ["crop"],
+        },
+    },
+    {
+        "name": "compare_suppliers",
+        "description": "Compare input DEALERS/suppliers for an item (fertilizer/seed/pesticide) ranked by price, delivery time, distance and rating, from a seeded supplier catalog. Use when the farmer asks where to buy cheapest/fastest/nearest, or wants to compare dealers before purchasing.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "item": {"type": "string", "description": "input item key, e.g. urea, tsp, mop, dap, mancozeb, cartap, imidacloprid"},
+                "quantity": {"type": "number", "description": "quantity to total the line cost (optional)"},
+                "sort_by": {"type": "string", "description": "price | delivery | distance | rating (default price)"},
+            },
+            "required": ["item"],
+        },
+    },
+    {
         "name": "save_farm_profile",
         "description": "Persist farm profile fields to memory (survives across sessions). Call as soon as the farmer reveals any field.",
         "parameters": {
@@ -234,6 +259,10 @@ def dispatch(session_id: str, name: str, args: dict):
             return pest.assess_pest_risk(**args)
         if name == "check_weather_alerts":
             return alerts.check_weather_alerts(session_id)
+        if name == "market_price_intelligence":
+            return market_intel.market_price_intelligence(**args)
+        if name == "compare_suppliers":
+            return suppliers.compare_suppliers(**args)
         if name == "compute_livestock_financials":
             return livestock.compute_livestock_financials(**args)
         if name == "generate_livestock_plan":
