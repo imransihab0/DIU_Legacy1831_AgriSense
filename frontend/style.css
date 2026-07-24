@@ -93,6 +93,22 @@ main { flex: 1; display: flex; min-height: 0; }
 .pay-row.total { font-size: 1.15rem; color: #1d4d2b; border-bottom: 0; padding-top: 10px; }
 .pay-warn { margin-top: 12px; background: #fff6e5; border: 1px solid #f0c877; color: #7a5200;
   border-radius: 8px; padding: 9px 11px; font-size: .85rem; }
+/* order builder dialog */
+.modal.order { width: min(94vw, 460px); text-align: left; }
+.modal.order h3 { text-align: center; }
+#orderRows { display: flex; flex-direction: column; gap: 8px; }
+.order-row { display: flex; gap: 6px; align-items: center; }
+.order-row select { flex: 1; min-width: 0; padding: 8px; border: 1px solid #cdd5c6; border-radius: 7px; font-size: .85rem; }
+.order-qty { width: 56px; padding: 8px 6px; border: 1px solid #cdd5c6; border-radius: 7px; text-align: center; font-size: .9rem; }
+.order-line { width: 62px; text-align: right; font-weight: 700; color: #1d4d2b; font-size: .9rem; }
+.order-rm { border: 0; background: #f2e2e2; color: #a13; border-radius: 6px; width: 26px; height: 30px; cursor: pointer; }
+.linkbtn { background: none; border: 0; color: #2c7a3f; cursor: pointer; font-size: .88rem; padding: 8px 0; font-weight: 600; }
+.order-total { text-align: right; font-size: 1.15rem; color: #1d4d2b; margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e0e6da; }
+.order-phone { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.order-phone label { font-size: .82rem; color: #555; }
+.order-phone input { padding: 9px; border: 1px solid #cdd5c6; border-radius: 7px; font-size: .95rem; }
+.order-phone input.err { border-color: #d33; background: #fdeeee; }
+
 .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
 .mbtn { flex: 1; padding: 12px; border: 0; border-radius: 9px; font-size: .95rem; font-weight: 700; cursor: pointer; }
 .mbtn.yes { background: #2c7a3f; color: #fff; }

@@ -46,6 +46,23 @@
     </aside>
   </main>
 
+  <div id="orderModal" class="modal-overlay hidden">
+    <div class="modal order">
+      <h3>🛒 অর্ডার তৈরি করুন</h3>
+      <div id="orderRows"></div>
+      <button id="orderAddRow" type="button" class="linkbtn">+ আরও পণ্য যোগ করুন</button>
+      <div class="order-total">মোট: <b>৳<span id="orderTotal">0</span></b></div>
+      <div class="order-phone">
+        <label for="orderPhone">মোবাইল নম্বর</label>
+        <input id="orderPhone" inputmode="numeric" autocomplete="off" placeholder="8801XXXXXXXXX" />
+      </div>
+      <div class="modal-actions">
+        <button id="orderCancel" class="mbtn no">বাতিল</button>
+        <button id="orderConfirm" class="mbtn yes">পেমেন্টে যান →</button>
+      </div>
+    </div>
+  </div>
+
   <div id="payModal" class="modal-overlay hidden">
     <div class="modal">
       <h3>⚠️ পেমেন্ট নিশ্চিত করুন</h3>

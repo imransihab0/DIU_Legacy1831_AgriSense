@@ -44,6 +44,13 @@ def reset(session_id: str):
     return {"ok": True}
 
 
+@app.get("/api/inputs")
+def inputs():
+    """Seeded input catalog (fertilizer/seed/pesticide) for the order-builder dialog."""
+    from .tools import market
+    return market.get_input_prices()
+
+
 @app.get("/api/alerts/{session_id}")
 def alerts_endpoint(session_id: str):
     """Proactive weather alerts for the farm's saved plan — polled by the UI (no chat turn)."""

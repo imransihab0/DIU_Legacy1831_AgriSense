@@ -184,6 +184,7 @@ function renderAgentMessage(el, content) {
       btn.textContent = b.label;
       btn.addEventListener("click", () => {
         if ($("sendBtn").disabled) return;
+        if (buy && INPUT_CATALOG.length) { openOrderModal(); return; }  // open the order builder
         row.querySelectorAll("button").forEach((x) => (x.disabled = true));
         send(b.msg);
       });
@@ -200,6 +201,73 @@ function renderAgentMessage(el, content) {
   }
 }
 
+// ---- Order builder dialog (pick product -> quantity -> live total -> pay) ----
+let INPUT_CATALOG = [];  // [{key, name, unit, price, cat}]
+fetch("/api/inputs").then((r) => r.json()).then((d) => {
+  const label = { fertilizers: "সার", seeds: "বীজ", pesticides: "কীটনাশক" };
+  for (const [cat, items] of Object.entries(d.catalog || {}))
+    for (const [key, it] of Object.entries(items))
+      INPUT_CATALOG.push({ key, name: it.name, unit: it.unit, price: it.price, cat: label[cat] || cat });
+}).catch(() => {});
+
+function addOrderRow() {
+  const row = document.createElement("div");
+  row.className = "order-row";
+  const sel = document.createElement("select");
+  sel.innerHTML = INPUT_CATALOG
+    .map((it, i) => `<option value="${i}">${it.cat} — ${escapeHtml(it.name)} (৳${it.price}/${escapeHtml(it.unit)})</option>`)
+    .join("");
+  const qty = document.createElement("input");
+  qty.type = "number"; qty.min = "1"; qty.value = "1"; qty.className = "order-qty";
+  const line = document.createElement("span"); line.className = "order-line";
+  const rm = document.createElement("button");
+  rm.type = "button"; rm.className = "order-rm"; rm.textContent = "✕";
+  rm.onclick = () => { row.remove(); updateOrderTotal(); };
+  sel.onchange = updateOrderTotal; qty.oninput = updateOrderTotal;
+  row.append(sel, qty, line, rm);
+  $("orderRows").appendChild(row);
+  updateOrderTotal();
+}
+
+function updateOrderTotal() {
+  let total = 0;
+  $("orderRows").querySelectorAll(".order-row").forEach((row) => {
+    const it = INPUT_CATALOG[+row.querySelector("select").value];
+    const q = Math.max(0, parseInt(row.querySelector(".order-qty").value) || 0);
+    const lt = it ? it.price * q : 0;
+    total += lt;
+    row.querySelector(".order-line").textContent = `৳${lt}`;
+  });
+  $("orderTotal").textContent = total;
+  return total;
+}
+
+function openOrderModal() {
+  $("orderRows").innerHTML = "";
+  addOrderRow();
+  $("orderPhone").value = localStorage.getItem("agrisense_phone") || "";
+  $("orderPhone").classList.remove("err");
+  updateOrderTotal();
+  $("orderModal").classList.remove("hidden");
+}
+
+$("orderAddRow").onclick = addOrderRow;
+$("orderCancel").onclick = () => $("orderModal").classList.add("hidden");
+$("orderConfirm").onclick = () => {
+  const total = updateOrderTotal();
+  const phone = $("orderPhone").value.replace(/\s/g, "");
+  const items = [...$("orderRows").querySelectorAll(".order-row")].map((row) => {
+    const it = INPUT_CATALOG[+row.querySelector("select").value];
+    const q = Math.max(1, parseInt(row.querySelector(".order-qty").value) || 1);
+    return `${q}x ${it.name}`;  // ASCII so the SMS receipt is clean
+  });
+  if (!total) return;
+  if (phone.replace(/\D/g, "").length < 11) { $("orderPhone").classList.add("err"); $("orderPhone").focus(); return; }
+  localStorage.setItem("agrisense_phone", phone);
+  $("orderModal").classList.add("hidden");
+  openPayModal({ amt: String(total), item: items.join(" + "), num: phone });  // final confirm
+};
+
 // ---- Payment confirmation modal ----
 function openPayModal(pay) {
   $("payDetails").innerHTML =
@@ -211,7 +279,7 @@ function openPayModal(pay) {
   modal.classList.remove("hidden");
   $("payYes").onclick = () => {
     modal.classList.add("hidden");
-    if (!$("sendBtn").disabled) send(`কনফার্ম, ${pay.item} এর জন্য ৳${pay.amt} পেমেন্ট করে দিন`);
+    if (!$("sendBtn").disabled) send(`কনফার্ম, ${pay.item} এর জন্য ৳${pay.amt} পেমেন্ট করে দিন, নম্বর ${pay.num}`);
   };
   $("payNo").onclick = () => modal.classList.add("hidden");
 }
