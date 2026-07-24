@@ -9,3 +9,4 @@ backend/agrisense.sqlite3
 Agentic_AI_Hackathon_Final_Question.pdf
 .DS_Store
 backend/data/masked_ids.json
+backend/data/weather_cache.json
