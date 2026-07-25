@@ -61,7 +61,8 @@ Farmer ⇄ Web UI (chat + live trace panel)
 - `generate_livestock_plan` creates dated procurement→vaccination→sale calendars grounded in a DLS/BLRI livestock KB document.
 
 **Tier 2:**
-- **Vision Diagnosis (`gpt-4o-mini`):** Analyzes leaf/crop photos to diagnose diseases and recommend treatments.
+- **Vision Diagnosis (`gpt-4o-mini`):** Analyzes leaf/crop photos to diagnose diseases and recommend treatments (auto-opens the camera/file picker; treatment grounded against the pest KB).
+- **Tap-to-dial an officer:** the farmer can ask to call their local কৃষি কর্মকর্তা — the agent gives the real **Krishi Call Center 16123** and web-searches the local DAE office number as one-tap phone-dialer buttons.
 - **Market Price Intelligence:** `market_price_intelligence` provides current + modeled 12-month seasonal history and deterministic sell/store/wait recommendations.
 - **Supplier Comparison:** `compare_suppliers` ranks seeded dealer catalogs by price, delivery, distance, and rating.
 - **bdapps CaaS Payment:** Complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) built to official API specs. Real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.

@@ -54,6 +54,10 @@ A chatbot answers one question. Our agent, for **one** farmer message, **chains 
 - `get_input_prices` — what the farmer BUYS (fertilizer/seed/pesticide/livestock feed & vaccine)
 - `compare_suppliers` — rank dealers by price/delivery/distance/rating
 
+**Vision & contact**
+- `diagnose_leaf` (vision) — the farmer uploads/snaps a leaf photo → the vision model (gpt-4o-mini) identifies the disease/pest, then the agent grounds the treatment against the pest KB. Labeled "AI visual assessment — confirm with DAE".
+- **Tap-to-dial an officer** — when the farmer wants to call a কৃষি কর্মকর্তা, the agent gives the real **Krishi Call Center 16123** + web-searches the local DAE office number, as a one-tap phone-dialer button (`[[CALL]]` token).
+
 **Actions & memory**
 - `save_farm_profile` — persist the farm to SQLite (memory across sessions)
 - `clear_farm_data` — "forget me" (confirm-gated) — privacy

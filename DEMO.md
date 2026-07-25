@@ -19,7 +19,9 @@
 4. **AWD wow** — *"সেচের খরচ কমানোর উপায়?"* → real BRRI/IRRI map → *"your area is suitable for AWD → save ~25-30% irrigation cost."*
 5. **Proactive alert** — point at the **weather alert banner** (updates with no chat turn).
 6. **bdapps LIVE** — buy an input via the 🛒 order dialog → confirm → **show the real receipt SMS on your phone** + `S1000` in the trace.
-7. **Memory** — hit **refresh** → farm still remembered.
+7. **Leaf diagnosis (vision)** — *"আমার ফসলের পাতায় দাগ, দেখে দাও"* → the camera/file picker **auto-opens** → snap/upload a leaf → AI diagnosis + KB-grounded treatment.
+8. **Call an officer** — *"আমার এলাকার কৃষি কর্মকর্তাকে কল করতে চাই"* → a green **📞 call button (16123)** appears → tap it → the phone dialer opens.
+9. **Memory** — hit **refresh** → farm still remembered.
 
 ## 🛡️ Q&A — likely questions & sharp answers (trace = proof)
 | Judge asks | Your answer |
