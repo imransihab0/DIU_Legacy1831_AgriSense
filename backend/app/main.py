@@ -13,6 +13,18 @@ app = FastAPI(title="AgriSense AI — DIU_Legacy1831")
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
+
+
+@app.middleware("http")
+async def no_cache_frontend(request, call_next):
+    """Serve the HTML/JS/CSS with no-cache so code changes always load (no stale browser cache)."""
+    response = await call_next(request)
+    p = request.url.path
+    if p == "/" or p.endswith((".js", ".css", ".html")):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
+
+
 db.init_db()
 
 
