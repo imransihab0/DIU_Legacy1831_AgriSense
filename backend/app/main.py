@@ -16,16 +16,19 @@ app.add_middleware(
 db.init_db()
 
 
+from typing import Optional
+
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+    image_data_url: Optional[str] = None
 
 
 @app.post("/api/chat")
 def chat(req: ChatRequest):
     def stream():
         try:
-            for event in run_agent(req.session_id, req.message):
+            for event in run_agent(req.session_id, req.message, req.image_data_url):
                 yield json.dumps(event, ensure_ascii=False) + "\n"
         except Exception as e:
             yield json.dumps({"type": "error", "text": f"{type(e).__name__}: {e}"}) + "\n"

@@ -12,7 +12,17 @@ from . import tools as T
 from .prompts import build_system_prompt
 
 
-def run_agent(session_id: str, user_message: str):
+def run_agent(session_id: str, user_message: str, image_data_url: str = None):
+    if image_data_url:
+        yield {"type": "status", "text": "Analyzing leaf image..."}
+        from ..tools import vision
+        start = time.time()
+        diag = vision.diagnose_leaf(image_data_url, user_message)
+        ms = round((time.time() - start) * 1000)
+        diag_text = diag.get("diagnosis", diag.get("error", "Unknown error"))
+        user_message += f"\n\n[System: User attached a photo. Vision AI assessment:\n{diag_text}\n(Acknowledge this and give follow-up advice based on this diagnosis)]"
+        yield {"type": "tool_result", "tool": "vision.diagnose_leaf", "ms": ms, "result": diag}
+
     db.add_message(session_id, "user", user_message)
     profile = db.get_profile(session_id)
     system = build_system_prompt(profile)

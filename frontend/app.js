@@ -87,16 +87,24 @@ function escapeHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-async function send(message) {
-  addMessage("user", escapeHtml(message));
+async function send(message, imageDataUrl = null) {
+  let displayHtml = escapeHtml(message);
+  if (imageDataUrl) {
+    displayHtml += `<br><img src="${imageDataUrl}" style="max-height: 200px; border-radius: 8px; margin-top: 8px; border: 1px solid var(--border);">`;
+  }
+  addMessage("user", displayHtml);
   const thinking = addMessage("assistant pending", "<em>thinking & calling tools…</em>");
   $("sendBtn").disabled = true;
+  document.querySelectorAll(".chip").forEach(c => c.disabled = true);
 
   try {
+    const body = { session_id: sessionId, message };
+    if (imageDataUrl) body.image_data_url = imageDataUrl;
+
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id: sessionId, message }),
+      body: JSON.stringify(body),
     });
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -119,10 +127,13 @@ async function send(message) {
   } finally {
     thinking.classList.remove("pending");
     $("sendBtn").disabled = false;
+    document.querySelectorAll(".chip").forEach(c => c.disabled = false);
     $("input").focus();
     pollAlerts(); // a turn may have created/updated the plan — refresh the banner now
   }
 }
+
+let shouldClearChat = false;
 
 function handleEvent(ev, thinkingEl) {
   if (ev.type === "status") {
@@ -131,8 +142,22 @@ function handleEvent(ev, thinkingEl) {
     addTrace("tool_call", `📤 CALL ${ev.tool}`, ev.params);
     thinkingEl.innerHTML = `<em>calling <b>${ev.tool}</b>…</em>`;
   } else if (ev.type === "tool_result") {
+    if (ev.tool === "clear_farm_data" && ev.result && ev.result.status === "cleared") shouldClearChat = true;
     addTrace("tool_result", `📥 RESULT ${ev.tool} (${ev.ms} ms)`, ev.result);
   } else if (ev.type === "final") {
+    if (shouldClearChat) {
+      Array.from($("messages").children).forEach(child => {
+        if (child !== thinkingEl) child.remove();
+      });
+      shouldClearChat = false;
+      addMessage(
+        "assistant",
+        marked.parse(
+          "**আসসালামু আলাইকুম! Welcome to AgriSense AI.** 🌾\n\nTell me about your farm and I'll build you a complete, costed, weather-aware season plan. For example:\n\n> *\"I have 2 acres in Bogura, loam soil, tubewell irrigation, budget 80,000 taka, planning for this rabi season.\"*\n\nYou can also just say hello — I'll ask for what I need. আপনি বাংলায়ও লিখতে পারেন।"
+        )
+      );
+      $("messages").appendChild(thinkingEl);
+    }
     renderAgentMessage(thinkingEl, ev.content || "");
     addTrace("status", "✔ turn complete");
   } else if (ev.type === "error") {
@@ -147,6 +172,21 @@ $("composer").addEventListener("submit", (e) => {
   if (!v) return;
   $("input").value = "";
   send(v);
+});
+
+$("cameraBtn").addEventListener("click", () => $("fileInput").click());
+
+$("fileInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = $("input").value.trim() || "আমার ফসলের এই ছবিটা দেখুন।";
+    $("input").value = "";
+    send(text, e.target.result);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
 });
 
 $("traceCopy").addEventListener("click", async () => {
@@ -203,10 +243,16 @@ function renderAgentMessage(el, content) {
       btn.addEventListener("click", () => {
         if ($("sendBtn").disabled) return;
         if (buy && INPUT_CATALOG.length) { openOrderModal(); return; }  // open the order builder
+        if (b.msg === "__FILE_PICKER__") { $("fileInput").click(); return; }
         row.querySelectorAll("button").forEach((x) => (x.disabled = true));
         send(b.msg);
       });
       row.appendChild(btn);
+      
+      // Auto-open file picker if the agent explicitly requested a photo
+      if (b.msg === "__FILE_PICKER__") {
+        setTimeout(() => $("fileInput").click(), 500);
+      }
     }
     if (pay) {
       const btn = document.createElement("button");
@@ -321,8 +367,9 @@ function openPayModal(pay) {
 const QUICK_ACTIONS = [
   { label: "🌾 প্ল্যান দিন", text: "আমার জমির জন্য একটি সম্পূর্ণ মৌসুমি প্ল্যান দিন।" },
   { label: "🌦️ আবহাওয়া", text: "এই সপ্তাহের আবহাওয়া আমার প্ল্যানে কোনো ঝুঁকি তৈরি করছে কি?" },
-  { label: "💰 দামের তালিকা", text: "সার ও বীজের দামের তালিকা দিন।" },
+  { label: "💰 দামের তালিকা", text: "আপনি এইমাত্র যে পণ্য বা উপাদানের (সার, বীজ, ওষুধ, পশুখাদ্য ইত্যাদি) পরামর্শ দিলেন, তার দাম কত? নির্দিষ্ট কিছু না থাকলে প্রাসঙ্গিক দামের তালিকা দিন।" },
   { label: "🐛 পোকা-রোগ", text: "আমার ফসলে কোন পোকা বা রোগের ঝুঁকি আছে?" },
+  { label: "📷 ছবি দিন", text: "__FILE_PICKER__" },
 ];
 const qa = $("quickActions");
 
@@ -331,7 +378,11 @@ function makeChip(label, text, custom) {
   b.className = "chip" + (custom ? " custom" : "");
   b.textContent = label;
   b.title = text;
-  b.addEventListener("click", () => { if (!$("sendBtn").disabled) send(text); });
+  b.addEventListener("click", () => {
+    if ($("sendBtn").disabled) return;
+    if (text === "__FILE_PICKER__") { $("fileInput").click(); return; }
+    send(text);
+  });
   if (custom) {
     const x = document.createElement("span");
     x.className = "chip-x"; x.textContent = "✕"; x.title = "Remove shortcut";
@@ -346,6 +397,18 @@ function loadShortcuts() {
   catch { return []; }
 }
 function saveShortcuts(list) { localStorage.setItem("agrisense_shortcuts", JSON.stringify(list)); }
+
+function loadHiddenDefaults() {
+  try { return JSON.parse(localStorage.getItem("agrisense_hidden_defaults") || "[]"); }
+  catch { return []; }
+}
+function hideDefault(label) {
+  const list = loadHiddenDefaults();
+  if (!list.includes(label)) {
+    list.push(label);
+    localStorage.setItem("agrisense_hidden_defaults", JSON.stringify(list));
+  }
+}
 
 function addShortcut(label, text) {
   const list = loadShortcuts();
@@ -373,8 +436,19 @@ function removeShortcutFuzzy(target) {
     const nl = normLabel(s.label), nt = normLabel(s.text);
     return !(nl === t || nl.includes(t) || t.includes(nl) || nt.includes(t));
   });
-  if (kept.length !== list.length) {
-    saveShortcuts(kept);
+  
+  let changed = kept.length !== list.length;
+  if (changed) saveShortcuts(kept);
+
+  for (const a of QUICK_ACTIONS) {
+    const nl = normLabel(a.label), nt = normLabel(a.text);
+    if (nl === t || nl.includes(t) || t.includes(nl) || nt.includes(t)) {
+      hideDefault(a.label);
+      changed = true;
+    }
+  }
+
+  if (changed) {
     renderChips();
     addTrace("status", `🗑 shortcut removed: ${target}`);
   }
@@ -382,7 +456,10 @@ function removeShortcutFuzzy(target) {
 
 function renderChips() {
   qa.innerHTML = "";
-  for (const a of QUICK_ACTIONS) qa.appendChild(makeChip(a.label, a.text, false));
+  const hidden = loadHiddenDefaults();
+  for (const a of QUICK_ACTIONS) {
+    if (!hidden.includes(a.label)) qa.appendChild(makeChip(a.label, a.text, false));
+  }
   for (const s of loadShortcuts()) qa.appendChild(makeChip("⭐ " + s.label, s.text, true));
   const add = document.createElement("button");
   add.className = "chip add"; add.textContent = "＋ শর্টকাট";

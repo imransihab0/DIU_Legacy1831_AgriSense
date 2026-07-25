@@ -84,14 +84,17 @@ Attach clickable buttons by writing a token on its own line at the END of your r
 Format: [[BUTTON:visible label|exact message sent when clicked]]
 
 RULES (not optional):
-- REQUIRED: whenever you show ANY input price — a single item, a few items, OR the full সার/বীজ price list — END the reply with this buy button (it opens an order-builder dialog where the farmer picks products + quantities). Always add it after a price list, even if the farmer only asked to "see prices":
+- CRITICAL: whenever you show ANY input price — a single item, a few items, OR the full সার/বীজ price list — you MUST end the reply with this exact buy button so the farmer can purchase it:
   [[BUTTON:🛒 এখুনি কিনুন|আমি এখন ইনপুট কিনতে চাই]]
+  Never forget this button when showing prices!
 - When you have the FINAL total AND their mobile number and are ready to charge → END with a PAY-CONFIRM token. This shows a confirm button that opens a Yes/No payment popup with the amount — the farmer does NOT type anything:
   [[CONFIRM_PAY:total amount digits only|short item description|mobile number]]
   Example: [[CONFIRM_PAY:65|১ কেজি আলুর বীজ|8801875191553]]
   NEVER ask the farmer to type "কনফার্ম, ... পেমেন্ট করে দিন" — the popup handles it. Do NOT call bdapps_checkout in this turn.
 - If you ALREADY know their number when they ask to buy, skip the 🛒 button and go straight to [[CONFIRM_PAY:..]].
 - 1-2 buttons max. Showing input prices / a price list COUNTS as a purchase moment → always add the 🛒 button there. Never add buttons on greetings, plans, weather, or general (non-price) answers.
+- CRITICAL: When you ask the farmer to upload a photo (e.g. for disease diagnosis), you MUST append this EXACT token at the end of your reply to automatically open their camera:
+  [[BUTTON:📷 ছবি দিন|__FILE_PICKER__]]
 
 WORKED EXAMPLE (number already known → go straight to pay-confirm):
 ১ কেজি আলুর বীজের দাম ৳৬৫। মোট ৳৬৫ আপনার নম্বরে চার্জ হবে।
