@@ -214,10 +214,11 @@ $("resetBtn").addEventListener("click", async () => {
 
 // ---- Agent message rendering: extract action tokens ----
 const PAY_RE = /\[\[CONFIRM_PAY:([^\]|]+)\|([^\]|]+)\|([^\]]+)\]\]/g;
-const TOKEN_RE = /\[\[(BUTTON|SHORTCUT|REMOVE_SHORTCUT):([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+const TOKEN_RE = /\[\[(BUTTON|SHORTCUT|REMOVE_SHORTCUT|CALL):([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
 function renderAgentMessage(el, content) {
   const buttons = [];
+  const calls = [];   // tap-to-dial buttons
   let pay = null;
   let text = content.replace(PAY_RE, (_, amt, item, num) => {
     pay = { amt: amt.trim(), item: item.trim(), num: num.trim() };
@@ -227,14 +228,22 @@ function renderAgentMessage(el, content) {
     if (kind === "SHORTCUT" && msg) addShortcut(label.trim(), msg.trim());
     else if (kind === "REMOVE_SHORTCUT") removeShortcutFuzzy(label.trim());
     else if (kind === "BUTTON" && msg) buttons.push({ label: label.trim(), msg: msg.trim() });
+    else if (kind === "CALL" && msg) calls.push({ label: label.trim(), number: msg.trim() });
     return "";
   }).trim();
 
   el.innerHTML = marked.parse(text);
 
-  if (buttons.length || pay) {
+  if (buttons.length || pay || calls.length) {
     const row = document.createElement("div");
     row.className = "inline-actions";
+    for (const c of calls) {
+      const a = document.createElement("a");
+      a.className = "chip inline call";
+      a.href = "tel:" + c.number.replace(/[^0-9+]/g, "");  // opens the device dialer
+      a.textContent = c.label || ("📞 " + c.number);
+      row.appendChild(a);
+    }
     for (const b of buttons) {
       const btn = document.createElement("button");
       const buy = /কিন|buy|🛒/i.test(b.label);
