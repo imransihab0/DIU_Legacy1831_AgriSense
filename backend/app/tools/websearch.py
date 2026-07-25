@@ -29,11 +29,11 @@ def _append_to_kb(query: str, items: list[dict]):
     )
 
 
-def web_search(query: str, top_k: int = 5) -> dict:
+def web_search(query: str, num_results: int = 5) -> dict:
     """Search the web for farming info not in the KB; append results to the KB (unverified)."""
     try:
         from ddgs import DDGS
-        raw = DDGS().text(query, max_results=min(int(top_k), 8))
+        raw = DDGS().text(query, max_results=min(int(num_results), 8))
     except Exception as e:
         return {"error": f"Web search unavailable ({type(e).__name__}). Fall back to the KB/catalog, "
                 "or tell the farmer to check the local source; do not invent an answer."}

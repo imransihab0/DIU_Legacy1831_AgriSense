@@ -71,7 +71,7 @@ TOOL_SPECS = [
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "focused search query, include location/BDT/Bangladesh where relevant"},
-                "top_k": {"type": "integer", "description": "number of results, default 5"},
+                "num_results": {"type": "integer", "description": "number of web results to fetch, default 5"},
             },
             "required": ["query"],
         },
