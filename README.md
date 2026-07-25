@@ -51,7 +51,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 
 **Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (deterministic dated splits from `generate_season_plan`, doses from KB) · **pest/disease risk** (`assess_pest_risk` — weather+stage → risk level, treatment, per-acre cost) · **proactive weather alerts** (`check_weather_alerts` + a UI banner that polls `/api/alerts` with no chat turn: heavy rain near a urea/sowing date → delay it, rain near an irrigation date → skip it).
 **Livestock (beyond crops):** animals get full parity — `compute_livestock_financials` (broiler/layer/goat/beef/dairy: cost, revenue, net, ROI, break-even per cycle) and `generate_livestock_plan` (dated procurement→vaccination→sale calendar), grounded in a DLS/BLRI livestock KB doc.
-**Tier 2:** market price intelligence (`market_price_intelligence` — current + modeled 12-month seasonal history and a deterministic sell-now/store/wait recommendation with storage+spoilage math) · supplier comparison (`compare_suppliers` — seeded dealer catalog ranked by price/delivery/distance/rating) · bdapps CaaS payment — complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) implemented against the official API spec; real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
+**Tier 2:** Vision Diagnosis (`gpt-4o-mini`) — analyzes leaf/crop photos to diagnose diseases and recommend treatments. · market price intelligence (`market_price_intelligence` — current + modeled 12-month seasonal history and a deterministic sell-now/store/wait recommendation with storage+spoilage math) · supplier comparison (`compare_suppliers` — seeded dealer catalog ranked by price/delivery/distance/rating) · bdapps CaaS payment — complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) implemented against the official API spec; real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
 
 ## Real vs mock (required disclosure)
 
@@ -59,6 +59,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 |---|---|
 | Weather + geocoding (Open-Meteo) | **REAL** — live API calls, visible in trace |
 | LLM (OpenAI gpt-5.1) | **REAL** |
+| Vision LLM (OpenAI gpt-4o-mini) | **REAL** — processes uploaded crop photos for disease diagnosis |
 | Knowledge base content | **REAL public sources** — compiled from BARC Fertilizer Recommendation Guide (FRG-2018), DAE/BRRI crop calendars & IPM bulletins, SRDI soil guides (see `backend/data/kb/`, each file cites its source) |
 | RAG retrieval (ChromaDB) | **REAL** — actual vector search, chunks + sources visible in trace |
 | Financial math | **REAL computation** — deterministic Python; baseline per-acre costs/yields are **seeded reference data** compiled from public extension sources (`backend/data/crops.json`) |
