@@ -69,9 +69,31 @@ A chatbot answers one question. Our agent, for **one** farmer message, **chains 
 
 ---
 
+## 📚 Data sources & the agencies behind them (full forms)
+All the agronomy knowledge is compiled from **publicly available Bangladesh government & research sources** — each KB file cites its source. If a judge asks "where did this come from?", this is the answer:
+
+| Agency (full form) | What it is | What we use from it |
+|---|---|---|
+| **BARC** — Bangladesh Agricultural Research Council | apex agri-research coordinator | **FRG 2024** (Fertilizer Recommendation Guide) → per-crop fertilizer doses (`frg_fertilizer_2024.md`) |
+| **BRRI** — Bangladesh Rice Research Institute | national rice institute | *Modern Rice Cultivation* (আধুনিক ধানের চাষ) → rice varieties, seedbed, water, pests (`rice_cultivation.md`); + AWD suitability maps |
+| **SRDI** — Soil Resource Development Institute | national soil survey body | *Soil Fertility Atlas 2020* + soil-texture rasters (clay/sand/silt) → soil auto-detect (`soil_fertility_atlas.md`, `soil_grid.json`) |
+| **DAE** — Department of Agricultural Extension | farmer-extension wing | Agromet advisory (weather→action) + Plant Protection/IPM (`agromet_advisory.md`, `plant_protection.md`) |
+| **DAM** — Department of Agricultural Marketing | official market-price authority | 8 division-wise retail price reports — today / last-month / last-year (`dam_prices_*.md`) |
+| **BBS** — Bangladesh Bureau of Statistics | national statistics office | *Yearbook of Agricultural Statistics 2024* → real yield baselines (`crop_yield_stats.md`) |
+| **DLS** — Department of Livestock Services | national livestock authority | livestock feeding / vaccination / disease guide (`livestock_guide.md`) |
+| **BLRI** — Bangladesh Livestock Research Institute | livestock research institute | livestock rearing guidance (with DLS) |
+| **IRRI** — International Rice Research Institute | global rice research (Philippines) | **AWD** (Alternate Wetting & Drying) suitability maps, with BRRI (`awd_grid.json`) |
+| **BADC** — Bangladesh Agricultural Development Corporation | seed/input supply body | indicative input & seed dealer prices (`input_prices.json`) |
+
+**Non-government sources:** **Open-Meteo** (free live weather + geocoding API) · **bdapps** (Robi/Axiata mobile-payment platform — real sandbox) · **DuckDuckGo** (web-search fallback, no key).
+
+**Other abbreviations:** **FRG** = Fertilizer Recommendation Guide · **AWD** = Alternate Wetting & Drying · **IPM** = Integrated Pest Management · **RAG** = Retrieval-Augmented Generation · **CaaS** = Charging-as-a-Service · **TAP** = Telco Application Proxy (the bdapps API) · **USDA** = US Dept of Agriculture (soil-texture triangle) · **AEZ** = Agro-Ecological Zone.
+
+---
+
 ## Real vs mock (be upfront — judges love this)
-- **REAL:** weather, geocoding, RAG knowledge base, soil map, AWD map, bdapps payment (real sandbox `S1000`), web search, DAM market prices.
-- **SEEDED (labeled):** baseline per-acre crop costs/yields and a few input prices — compiled from public extension sources, used by the deterministic math.
+- **REAL:** weather, geocoding, RAG knowledge base, soil map, AWD map, bdapps payment (real sandbox `S1000`), web search, DAM market prices, vision leaf diagnosis.
+- **SEEDED (labeled):** baseline per-acre crop costs/yields and a few input prices — compiled from the public extension sources above, used by the deterministic math.
 - Full table is in the README.
 
 ---
