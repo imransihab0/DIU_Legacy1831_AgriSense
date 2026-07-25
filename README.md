@@ -49,9 +49,22 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | 7 | Knowledge base with RAG | ChromaDB over `backend/data/kb/` (BARC FRG, DAE/BRRI-derived docs) |
 | 8 | Visible agent trace | Right-hand panel streams every tool call: name, params, raw result, latency |
 
-**Tier 1:** persistent memory (SQLite, survives restarts) · scenario simulation (`yield_factor`/`cost_factor`/`price_factor` re-runs) · fertilizer scheduler by growth stage (deterministic dated splits from `generate_season_plan`, doses from KB) · **pest/disease risk** (`assess_pest_risk` — weather+stage → risk level, treatment, per-acre cost) · **proactive weather alerts** (`check_weather_alerts` + a UI banner that polls `/api/alerts` with no chat turn: heavy rain near a urea/sowing date → delay it, rain near an irrigation date → skip it).
-**Livestock (beyond crops):** animals get full parity — `compute_livestock_financials` (broiler/layer/goat/beef/dairy: cost, revenue, net, ROI, break-even per cycle) and `generate_livestock_plan` (dated procurement→vaccination→sale calendar), grounded in a DLS/BLRI livestock KB doc.
-**Tier 2:** Vision Diagnosis (`gpt-4o-mini`) — analyzes leaf/crop photos to diagnose diseases and recommend treatments. · market price intelligence (`market_price_intelligence` — current + modeled 12-month seasonal history and a deterministic sell-now/store/wait recommendation with storage+spoilage math) · supplier comparison (`compare_suppliers` — seeded dealer catalog ranked by price/delivery/distance/rating) · bdapps CaaS payment — complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) implemented against the official API spec; real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
+**Tier 1:**
+- **Persistent Memory:** SQLite database survives restarts and remembers farm profiles.
+- **Scenario Simulation:** Re-run financials with updated `yield_factor`, `cost_factor`, or `price_factor`.
+- **Fertilizer Scheduler:** Deterministic dated splits from `generate_season_plan` with doses from the KB.
+- **Pest & Disease Risk:** `assess_pest_risk` combines live weather + growth stage to predict risk level, treatments, and costs.
+- **Proactive Weather Alerts:** Automated UI banner polls `/api/alerts`. Heavy rain near a urea/sowing date triggers a delay warning; rain near irrigation triggers a skip warning.
+
+**Livestock (beyond crops):**
+- Animals get full parity via `compute_livestock_financials` (broiler/layer/goat/beef/dairy: cost, revenue, net, ROI, break-even).
+- `generate_livestock_plan` creates dated procurement→vaccination→sale calendars grounded in a DLS/BLRI livestock KB document.
+
+**Tier 2:**
+- **Vision Diagnosis (`gpt-4o-mini`):** Analyzes leaf/crop photos to diagnose diseases and recommend treatments.
+- **Market Price Intelligence:** `market_price_intelligence` provides current + modeled 12-month seasonal history and deterministic sell/store/wait recommendations.
+- **Supplier Comparison:** `compare_suppliers` ranks seeded dealer catalogs by price, delivery, distance, and rating.
+- **bdapps CaaS Payment:** Complete TAP checkout flow (`caas/queryBalance` → `caas/directDebit` → `sms/send` receipt) built to official API specs. Real sandbox calls when credentials are provided, schema-identical labeled simulation otherwise. Bengali interaction supported natively.
 
 ## Real vs mock (required disclosure)
 
