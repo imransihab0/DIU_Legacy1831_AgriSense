@@ -34,7 +34,7 @@ def diagnose_leaf(image_data_url: str, note: str = "") -> dict:
                     {"type": "image_url", "image_url": {"url": image_data_url}},
                 ]},
             ],
-            max_tokens=300,
+            max_tokens=600,  # Bengali needs more tokens; 300 truncated the diagnosis mid-sentence
         )
         return {"diagnosis": resp.choices[0].message.content or "", "source": "AI visual assessment (vision model)"}
     except Exception as e:

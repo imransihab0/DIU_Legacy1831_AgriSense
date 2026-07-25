@@ -73,7 +73,7 @@ Farmer ⇄ Web UI (chat + live trace panel)
 | Weather + geocoding (Open-Meteo) | **REAL** — live API calls, visible in trace |
 | LLM (OpenAI gpt-5.1) | **REAL** |
 | Vision LLM (OpenAI gpt-4o-mini) | **REAL** — processes uploaded crop photos for disease diagnosis |
-| Knowledge base content | **REAL public sources** — compiled from BARC Fertilizer Recommendation Guide (FRG-2018), DAE/BRRI crop calendars & IPM bulletins, SRDI soil guides (see `backend/data/kb/`, each file cites its source) |
+| Knowledge base content | **REAL public sources** — 19 docs: BARC **FRG 2024** fertilizer guide, **BRRI Modern Rice Cultivation**, SRDI **Soil Fertility Atlas 2020**, DAE agromet advisory & plant protection, BBS 2024 yield stats, a DLS/BLRI livestock guide, and **8 division-wise DAM market-price reports** (see `backend/data/kb/`, each file cites its source) |
 | RAG retrieval (ChromaDB) | **REAL** — actual vector search, chunks + sources visible in trace |
 | Financial math | **REAL computation** — deterministic Python; baseline per-acre costs/yields are **seeded reference data** compiled from public extension sources (`backend/data/crops.json`) |
 | Market (crop output) prices | **REAL (DAM) + seeded fallback** — 8 division-wise DAM retail price reports (dated current + last-month + last-year prices with % change) are in the RAG KB (`kb/dam_prices_*.md`) and the agent quotes them via search_knowledge_base; the small seeded catalog (`market_prices.json`) is a quick fallback |
